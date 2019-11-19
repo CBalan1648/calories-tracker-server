@@ -11,16 +11,17 @@ export class MealsService {
     ) { }
 
     async addMeal(user: User, meal: Meal): Promise<Meal> {
-        console.log(user);
-        return await this.userModel.update({ email: user.email }, {
+        const updatedUserCursor = await this.userModel.findOneAndUpdate({ email: user.email }, {
             $push: {
                 meals: meal,
             },
-        });
+        }, { new: true, fields: { meals: { $slice: -1 } } });
+
+        return updatedUserCursor.meals[0];
     }
 
     async updateMeal(user: User, meal: Meal): Promise<Meal> {
-        return await this.userModel.update({ 'email': user.email, 'meals._id': meal._id }, {
+        return await this.userModel.updateOne({ 'email': user.email, 'meals._id': meal._id }, {
             $set: {
                 'meals.$': meal,
             },
@@ -28,7 +29,7 @@ export class MealsService {
     }
 
     async getMeals(user: User): Promise<Meal[]> {
-        return await this.userModel.find({ email: user.email }, { meals: { $slice: [0, 2] } });
+        return await this.userModel.findOne({ email: user.email }, { meals: 1 }, { omitUndefined: true });
     }
 
     async deleteMeal(user: User, meal: Meal): Promise<Meal> {

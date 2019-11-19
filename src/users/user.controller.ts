@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { UserLevelValidation } from '..//helpers/userLevel.decorator';
 import { AuthService } from '../auth/auth.service';
+import { ADMIN } from '../helpers/userLevel.constants';
 import { User } from './user.model';
 import { UserService } from './user.service';
 import { UserCredentials } from './userCredentials.model';
@@ -12,7 +14,7 @@ export class UserController {
 
     @Post()
     async createUser(@Body() user: User) {
-        return this.userService.create(user);
+        return await this.userService.create(user);
     }
 
     @Post('login')
@@ -22,10 +24,7 @@ export class UserController {
 
     @UseGuards(AuthGuard('jwt'))
     @Get()
-    async getAllUsers(@Request() req) {
-        return req.user;
-
+    async getAllUsers(@UserLevelValidation(ADMIN) req) {
         return this.userService.findAll();
     }
-
 }

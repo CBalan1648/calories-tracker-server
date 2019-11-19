@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Meal } from './meals.model';
 import { User } from '../users/user.model';
+import { Meal } from './meals.model';
 
 @Injectable()
 export class MealsService {
@@ -11,6 +11,7 @@ export class MealsService {
     ) { }
 
     async addMeal(user: User, meal: Meal): Promise<Meal> {
+        console.log(user);
         return await this.userModel.update({ email: user.email }, {
             $push: {
                 meals: meal,

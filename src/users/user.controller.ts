@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { AuthService } from '../auth/auth.service';
 import { User } from './user.model';
 import { UserService } from './user.service';
 import { UserCredentials } from './userCredentials.model';
@@ -6,7 +8,7 @@ import { UserCredentials } from './userCredentials.model';
 @Controller('users')
 export class UserController {
 
-    constructor(private readonly userService: UserService) { }
+    constructor(private readonly userService: UserService, private readonly authService: AuthService) { }
 
     @Post()
     async createUser(@Body() user: User) {
@@ -15,11 +17,14 @@ export class UserController {
 
     @Post('login')
     async login(@Body() credentials: UserCredentials) {
-        return this.userService.loginUser(credentials);
+        return this.authService.login(credentials);
     }
 
+    @UseGuards(AuthGuard('jwt'))
     @Get()
-    async getAllUsers() {
+    async getAllUsers(@Request() req) {
+        return req.user;
+
         return this.userService.findAll();
     }
 

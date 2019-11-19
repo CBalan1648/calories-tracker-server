@@ -9,4 +9,5 @@ export const UserSchema = new mongoose.Schema({
     authLevel: { type: String, enum: ['USER', 'USER_MANAGER', 'ADMIN'], default: 'USER' },
     password: { type: String, required: true },
     meals: { type: [MealsSchema], default: [] },
-});
+
+}, { versionKey: false });

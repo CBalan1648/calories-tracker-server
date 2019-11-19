@@ -5,4 +5,4 @@ export const MealsSchema = new mongoose.Schema({
     description: { type: String },
     time: { type: Number, required: true },
     calories: { type: Number, required: true },
-});
+}, { versionKey: false });

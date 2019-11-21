@@ -32,8 +32,8 @@ export class MealsService {
         return await this.userModel.findOne({ email: user.email }, { meals: 1 }, { omitUndefined: true });
     }
 
-    async deleteMeal(user: User, meal: Meal): Promise<Meal> {
-        return await this.userModel.update({ email: user.email }, { $pull: { meals: { _id: meal._id } } });
+    async deleteMeal(user: User, mealId: string): Promise<Meal> {
+        return await this.userModel.update({ email: user.email }, { $pull: { meals: { _id: mealId } } });
     }
 
 }

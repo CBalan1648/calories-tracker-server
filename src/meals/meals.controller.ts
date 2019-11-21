@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Put, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, Request, UseGuards, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Meal } from './meals.model';
 import { MealsService } from './meals.service';
@@ -27,8 +27,8 @@ export class MealsController {
     }
 
     @UseGuards(AuthGuard('jwt'))
-    @Delete()
-    async deleteMeal(@Request() request, @Body() meal: Meal) {
-        return this.mealsService.deleteMeal(request.user, meal);
+    @Delete(':id')
+    async deleteMeal(@Request() request, @Param() params) {
+        return this.mealsService.deleteMeal(request.user, params.id);
     }
 }

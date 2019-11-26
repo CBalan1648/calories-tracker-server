@@ -10,8 +10,8 @@ export class MealsService {
         @InjectModel('User') private readonly userModel: Model<User>,
     ) { }
 
-    async addMeal(user: User, meal: Meal): Promise<Meal> {
-        const updatedUserCursor = await this.userModel.findOneAndUpdate({ email: user.email }, {
+    async addMeal(userId: string, meal: Meal): Promise<Meal> {
+        const updatedUserCursor = await this.userModel.findOneAndUpdate({ _id: userId }, {
             $push: {
                 meals: meal,
             },
@@ -20,20 +20,20 @@ export class MealsService {
         return updatedUserCursor.meals[0];
     }
 
-    async updateMeal(user: User, meal: Meal): Promise<Meal> {
-        return await this.userModel.updateOne({ 'email': user.email, 'meals._id': meal._id }, {
+    async updateMeal(userId: string, mealId: string, meal: Meal): Promise<Meal> {
+        return await this.userModel.updateOne({ _id : userId, 'meals._id': mealId }, {
             $set: {
                 'meals.$': meal,
             },
         });
     }
 
-    async getMeals(user: User): Promise<Meal[]> {
-        return await this.userModel.findOne({ email: user.email }, { meals: 1 }, { omitUndefined: true });
+    async getMeals(userId: string): Promise<Meal[]> {
+        return await this.userModel.findOne({ _id : userId }, { meals: 1 }, { omitUndefined: true });
     }
 
-    async deleteMeal(user: User, mealId: string): Promise<Meal> {
-        return await this.userModel.update({ email: user.email }, { $pull: { meals: { _id: mealId } } });
+    async deleteMeal(userId: string, mealId: string): Promise<Meal> {
+        return await this.userModel.update({ _id : userId }, { $pull: { meals: { _id: mealId } } });
     }
 
 }

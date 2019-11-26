@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, Put, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UserLevelValidation } from '..//helpers/userLevel.decorator';
 import { AuthService } from '../auth/auth.service';
@@ -7,7 +7,7 @@ import { User } from './user.model';
 import { UserService } from './user.service';
 import { UserCredentials } from './userCredentials.model';
 
-@Controller('users')
+@Controller('api/users')
 export class UserController {
 
     constructor(private readonly userService: UserService, private readonly authService: AuthService) { }
@@ -23,8 +23,8 @@ export class UserController {
     }
 
     @UseGuards(AuthGuard('jwt'))
-    @Get()
-    async getAllUsers(@UserLevelValidation(ADMIN) req) {
-        return this.userService.findAll();
+    @Put(':id')
+    async updateUser(@Body() user: User, @Param() parameters) {
+        return await this.userService.update(parameters.id, user);
     }
 }

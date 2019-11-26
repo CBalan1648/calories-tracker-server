@@ -3,4 +3,5 @@ export class User {
     lastName: string;
     _id: string;
     email: string;
+    targetCalories: number;
 }

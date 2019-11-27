@@ -3,32 +3,32 @@ import { AuthGuard } from '@nestjs/passport';
 import { Meal } from './meals.model';
 import { MealsService } from './meals.service';
 
-@Controller('api/meals')
+@Controller('api/users')
 export class MealsController {
 
     constructor(private readonly mealsService: MealsService) { }
 
     @UseGuards(AuthGuard('jwt'))
-    @Post()
-    async addMeal(@Request() request, @Body() meal: Meal) {
-        return this.mealsService.addMeal(request.user._id, meal);
+    @Post(':id/meals')
+    async addMeal(@Param() parameters, @Body() meal: Meal) {
+        return this.mealsService.addMeal(parameters.id, meal);
     }
 
     @UseGuards(AuthGuard('jwt'))
-    @Put(':id')
-    async updateMeal(@Request() request, @Body() meal: Meal, @Param() parameters) {
-        return this.mealsService.updateMeal(request.user._id, parameters.id , meal);
+    @Put(':id/meals/:mealId')
+    async updateMeal(@Body() meal: Meal, @Param() parameters) {
+        return this.mealsService.updateMeal(parameters.id, parameters.mealId, meal);
     }
 
     @UseGuards(AuthGuard('jwt'))
-    @Get()
-    async getMeals(@Request() request) {
-        return this.mealsService.getMeals(request.user._id);
+    @Get(':id/meals')
+    async getMeals(@Param() parameters) {
+        return this.mealsService.getMeals(parameters.id);
     }
 
     @UseGuards(AuthGuard('jwt'))
-    @Delete(':id')
-    async deleteMeal(@Request() request, @Param() paramters) {
-        return this.mealsService.deleteMeal(request.user._id, paramters.id);
+    @Delete(':id/meals/:mealId')
+    async deleteMeal(@Param() parameters) {
+        return this.mealsService.deleteMeal(parameters.id, parameters.mealId);
     }
 }

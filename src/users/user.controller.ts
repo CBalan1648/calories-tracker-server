@@ -20,9 +20,9 @@ export class UserController {
         return this.authService.login(credentials);
     }
 
-    @UseGuards(AuthGuard('jwt'))
-    @Put(':id')
-    async updateUser(@Body() user: User, @Param() parameters) {
-        return await this.userService.update(parameters.id, user);
-    }
+    // @UseGuards(AuthGuard('jwt'))
+    // @Put(':id')
+    // async updateUser(@Body() user: User, @Param() parameters) {
+    //     return await this.userService.update(parameters.id, user);
+    // }
 }

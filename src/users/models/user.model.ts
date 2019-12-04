@@ -1,14 +1,21 @@
-export class User {
-    firstName: string;
-    lastName: string;
-    _id: string;
-    email: string;
-    targetCalories: number;
-    authLevel: UserRoles;
-}
+import { ApiProperty } from '@nestjs/swagger';
 
-export enum UserRoles {
-    Admin = 'ADMIN',
-    UserManager = 'USER_MANAGER',
-    User = 'USER',
+export class User {
+    @ApiProperty()
+    firstName: string;
+
+    @ApiProperty()
+    lastName: string;
+
+    @ApiProperty()
+    _id: string;
+
+    @ApiProperty()
+    email: string;
+
+    @ApiProperty()
+    targetCalories: number;
+
+    @ApiProperty()
+    authLevel: string;
 }

@@ -5,7 +5,8 @@ import { AppModule } from './app.module';
 const options = new DocumentBuilder()
 .setTitle('Calories Tracker - API Documentation')
 .setDescription('This document describes endpoints for users and meals CRUD operations')
-.setVersion('1.0').build();
+.setVersion('1.0')
+.build();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

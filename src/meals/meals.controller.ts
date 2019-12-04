@@ -2,10 +2,15 @@ import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nes
 import { AuthGuard } from '@nestjs/passport';
 import { Meal } from './models/meals.model';
 import { MealsService } from './meals.service';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiHeader } from '@nestjs/swagger';
 import { MealPostBody } from './models/meal-post-body.model';
+import { DbResponse } from '../helpers/db-response.model';
 
 @ApiBearerAuth()
+@ApiHeader({
+    name: 'Authorization',
+    description: 'Authentication token',
+  })
 @Controller('api/users')
 export class MealsController {
 
@@ -24,7 +29,7 @@ export class MealsController {
     @ApiOperation({ summary: 'Update meal - Returns number of modified items' })
     @ApiParam({name : 'id', description : 'Target user id', required : true})
     @ApiParam({name : 'mealId', description : 'Target meal id', required : true})
-    async updateMeal(@Body() meal: Meal, @Param() parameters) {
+    async updateMeal(@Body() meal: Meal, @Param() parameters): Promise<DbResponse> {
         return this.mealsService.updateMeal(parameters.id, parameters.mealId, meal);
     }
 
@@ -32,7 +37,7 @@ export class MealsController {
     @Get(':id/meals')
     @ApiOperation({ summary: 'Get user meals - Returns Meals array' })
     @ApiParam({name : 'id', description : 'Target user id', required : true})
-    async getMeals(@Param() parameters) {
+    async getMeals(@Param() parameters): Promise<Meal[]> {
         return this.mealsService.getMeals(parameters.id);
     }
 
@@ -41,7 +46,7 @@ export class MealsController {
     @ApiOperation({ summary: 'Update meal - Returns number of modified items' })
     @ApiParam({name : 'id', description : 'Target user id', required : true})
     @ApiParam({name : 'mealId', description : 'Target meal id', required : true})
-    async deleteMeal(@Param() parameters) {
+    async deleteMeal(@Param() parameters): Promise<DbResponse> {
         return this.mealsService.deleteMeal(parameters.id, parameters.mealId);
     }
 }

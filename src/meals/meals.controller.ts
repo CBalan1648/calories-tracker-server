@@ -2,15 +2,12 @@ import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nes
 import { AuthGuard } from '@nestjs/passport';
 import { Meal } from './models/meals.model';
 import { MealsService } from './meals.service';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiHeader } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiHeader, ApiTags, ApiSecurity } from '@nestjs/swagger';
 import { MealPostBody } from './models/meal-post-body.model';
 import { DbResponse } from '../helpers/db-response.model';
 
+@ApiTags('Meals')
 @ApiBearerAuth()
-@ApiHeader({
-    name: 'Authorization',
-    description: 'Authentication token',
-  })
 @Controller('api/users')
 export class MealsController {
 

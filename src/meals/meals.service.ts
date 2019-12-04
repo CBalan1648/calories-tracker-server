@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { User } from '../users/models/user.model';
 import { Meal } from './models/meals.model';
 import { MealPostBody } from './models/meal-post-body.model';
+import { DbResponse } from '../helpers/db-response.model';
 
 @Injectable()
 export class MealsService {
@@ -21,8 +22,8 @@ export class MealsService {
         return updatedUserCursor.meals[0];
     }
 
-    async updateMeal(userId: string, mealId: string, meal: Meal): Promise<Meal> {
-        return await this.userModel.updateOne({ "_id": userId, 'meals._id': mealId }, {
+    async updateMeal(userId: string, mealId: string, meal: Meal): Promise<DbResponse> {
+        return await this.userModel.updateOne({ '_id': userId, 'meals._id': mealId }, {
             $set: {
                 'meals.$': meal,
             },
@@ -33,7 +34,7 @@ export class MealsService {
         return await this.userModel.findOne({ _id: userId }, { meals: 1 }, { omitUndefined: true });
     }
 
-    async deleteMeal(userId: string, mealId: string): Promise<Meal> {
+    async deleteMeal(userId: string, mealId: string): Promise<DbResponse> {
         return await this.userModel.update({ _id: userId }, { $pull: { meals: { _id: mealId } } });
     }
 

@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './models/user.model';
 import { UserRegistrationBodyDto } from './models/user-registration-body.model';
+import { DbResponse } from '../helpers/db-response.model';
 
 @Injectable()
 export class UserService {
@@ -28,7 +29,7 @@ export class UserService {
         });
     }
 
-    async updateWithPrivileges(id, user): Promise<User> {
+    async updateWithPrivileges(id, user): Promise<DbResponse> {
         return await this.userModel.updateOne({ _id: id }, {
             $set: {
                 firstName: user.firstName,

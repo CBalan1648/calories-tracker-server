@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { MealsSchema } from 'src/meals/meals.schema';
+import { MealsSchema } from '..//meals/meals.schema';
 
 export const UserSchema = new mongoose.Schema({
     firstName: { type: String, required: true },

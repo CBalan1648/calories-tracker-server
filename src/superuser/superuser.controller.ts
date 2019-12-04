@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Meal } from '../meals/meals.model';
 import { MealsService } from '../meals/meals.service';
 import { UserService } from '../users/user.service';
 

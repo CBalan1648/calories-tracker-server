@@ -6,8 +6,10 @@ import { MealsSchema } from './meals.schema';
 import { MealsService } from './meals.service';
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: 'Meal', schema: MealsSchema }, { name: 'User', schema: UserSchema }]),
-    ],
+    imports: [MongooseModule.forFeature([
+        { name: 'Meal', schema: MealsSchema },
+        { name: 'User', schema: UserSchema },
+    ])],
     controllers: [MealsController],
     providers: [MealsService],
 })

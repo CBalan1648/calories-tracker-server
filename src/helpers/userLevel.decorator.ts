@@ -9,8 +9,8 @@ export const UserLevelValidation = createParamDecorator((level, req) => {
 
 export const OwnerValidation = createParamDecorator((level, req) => {
 
-    if (req.user._id === req.params.id) {
-      return req;
-    }
-    throw new HttpException('Insufficient Rights', HttpStatus.FORBIDDEN);
+  if (req.user._id === req.params.id) {
+    return req;
+  }
+  throw new HttpException('Insufficient Rights', HttpStatus.FORBIDDEN);
 });

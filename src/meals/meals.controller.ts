@@ -13,6 +13,8 @@ export class MealsController {
 
     constructor(private readonly mealsService: MealsService) { }
 
+    // TODO :  Add documentation for bad request, unauthorized, forbidden
+    // ! : Handle case when another user wants to add meals without privileges
     @UseGuards(AuthGuard('jwt'))
     @Post(':id/meals')
     @ApiOperation({ summary: 'Create a new Meal - Returns created record' })
@@ -21,6 +23,9 @@ export class MealsController {
         return this.mealsService.addMeal(parameters.id, meal);
     }
 
+    // ? Can add parameters pipe validation ?
+    // TODO : Add documentation for Bad request, unauthorized, forbidden
+    // ! : Handle case when another user wants to add meals without privileges
     @UseGuards(AuthGuard('jwt'))
     @Put(':id/meals/:mealId')
     @ApiOperation({ summary: 'Update meal - Returns number of modified items' })
@@ -30,6 +35,8 @@ export class MealsController {
         return this.mealsService.updateMeal(parameters.id, parameters.mealId, meal);
     }
 
+    // TODO : Add documentation for Bad request, unauthorized, forbidden
+    // ! : Handle case when another user wants to add meals without privileges
     @UseGuards(AuthGuard('jwt'))
     @Get(':id/meals')
     @ApiOperation({ summary: 'Get user meals - Returns Meals array' })
@@ -38,6 +45,8 @@ export class MealsController {
         return this.mealsService.getMeals(parameters.id);
     }
 
+    // TODO : Add documentation for Bad request, unauthorized, forbidden
+    // ! : Handle case when another user wants to add meals without privileges
     @UseGuards(AuthGuard('jwt'))
     @Delete(':id/meals/:mealId')
     @ApiOperation({ summary: 'Update meal - Returns number of modified items' })

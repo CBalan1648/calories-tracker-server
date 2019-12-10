@@ -13,6 +13,7 @@ export class SuperuserController {
 
     constructor(private readonly userService: UserService, private readonly mealsService: MealsService) { }
 
+    // TODO : Add insuficient privileges documentation
     @UseGuards(AuthGuard('jwt'))
     @Get()
     @ApiOperation({ summary: 'Returns all User records' })
@@ -20,6 +21,7 @@ export class SuperuserController {
         return this.userService.findAll();
     }
 
+    // TODO : Add insuficient privileges documentation
     @UseGuards(AuthGuard('jwt'))
     @Delete(':id')
     @ApiOperation({ summary: 'Delete user - Returns number of modified items' })
@@ -28,6 +30,8 @@ export class SuperuserController {
         return this.userService.delete(paramters.id);
     }
 
+    // TODO : Add insuficient privileges documentation
+    // ! : Handle difference between user and admin on update request
     @UseGuards(AuthGuard('jwt'))
     @Put(':id')
     @ApiOperation({ summary: 'Update user record - Returns number of modified items' })
@@ -36,6 +40,9 @@ export class SuperuserController {
         return this.userService.updateWithPrivileges(parameters.id, body);
     }
 
+
+    // TODO : Add unauthorized documentation
+    // ! : Handle case when a non admin user is requesting another record than his own
     @UseGuards(AuthGuard('jwt'))
     @Get(':id')
     @ApiOperation({ summary: 'Returns target User record' })

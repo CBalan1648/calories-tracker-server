@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Put, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { DELETE_USER, GET_USER, GET_USERS, INSUFFICIENT_PRIVILEGES, JWT_NOT_VALID, PUT_USER, USER_ID_DESCRIPTION } from 'src/helpers/strings';
-import { ADMIN, SELF, USER, USER_MANAGER } from 'src/helpers/userLevel.constants';
+import { DELETE_USER, GET_USER, GET_USERS, INSUFFICIENT_PRIVILEGES, JWT_NOT_VALID, PUT_USER, USER_ID_DESCRIPTION } from '../helpers/strings';
+import { ADMIN, SELF, USER, USER_MANAGER } from '../helpers/userLevel.constants';
 import { DbResponse } from '../helpers/db-response.model';
 import { Roles } from '../helpers/userLevel.decorator';
 import { UserLevelGuard } from '../helpers/userLevel.guard';

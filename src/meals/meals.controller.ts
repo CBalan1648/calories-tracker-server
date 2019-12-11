@@ -12,7 +12,7 @@ import {
     PUT_MEAL,
     USER_ID_DESCRIPTION,
 } from '../helpers/strings';
-import { ADMIN, SELF, USER_MANAGER } from 'src/helpers/userLevel.constants';
+import { ADMIN, SELF, USER_MANAGER } from '../helpers/userLevel.constants';
 import { DbResponse } from '../helpers/db-response.model';
 import { Roles } from '../helpers/userLevel.decorator';
 import { UserLevelGuard } from '../helpers/userLevel.guard';

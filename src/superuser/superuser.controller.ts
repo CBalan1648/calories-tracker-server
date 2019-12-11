@@ -1,11 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Put, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiHeader, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { DELETE_USER, GET_USER, GET_USERS, INSUFFICIENT_PRIVILEGES, JWT_NOT_VALID, PUT_USER, USER_ID_DESCRIPTION } from 'src/helpers/strings';
+import { ADMIN, SELF, USER, USER_MANAGER } from 'src/helpers/userLevel.constants';
 import { DbResponse } from '../helpers/db-response.model';
+import { Roles } from '../helpers/userLevel.decorator';
+import { UserLevelGuard } from '../helpers/userLevel.guard';
 import { MealsService } from '../meals/meals.service';
 import { User } from '../users/models/user.model';
 import { UserService } from '../users/user.service';
 
+@UseGuards(AuthGuard('jwt'), UserLevelGuard)
 @ApiBearerAuth()
 @ApiTags('Superuser')
 @Controller('api/users')
@@ -13,40 +18,47 @@ export class SuperuserController {
 
     constructor(private readonly userService: UserService, private readonly mealsService: MealsService) { }
 
-    // TODO : Add insuficient privileges documentation
-    @UseGuards(AuthGuard('jwt'))
+    @ApiResponse({ status: 401, description: JWT_NOT_VALID })
+    @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
     @Get()
-    @ApiOperation({ summary: 'Returns all User records' })
+    @Roles(USER_MANAGER, ADMIN)
+    @ApiOperation({ summary: GET_USERS })
     async getAllUsers(): Promise<User[]> {
         return this.userService.findAll();
     }
 
-    // TODO : Add insuficient privileges documentation
-    @UseGuards(AuthGuard('jwt'))
+    @ApiResponse({ status: 401, description: JWT_NOT_VALID })
+    @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
     @Delete(':id')
-    @ApiOperation({ summary: 'Delete user - Returns number of modified items' })
-    @ApiParam({ name: 'id', description: 'Target user id', required: true })
+    @ApiOperation({ summary: DELETE_USER })
+    @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
+    @Roles(USER_MANAGER, ADMIN)
     async deleteUser(@Param() paramters): Promise<DbResponse> {
         return this.userService.delete(paramters.id);
     }
 
-    // TODO : Add insuficient privileges documentation
-    // ! : Handle difference between user and admin on update request
-    @UseGuards(AuthGuard('jwt'))
+    @ApiResponse({ status: 401, description: JWT_NOT_VALID })
+    @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
     @Put(':id')
-    @ApiOperation({ summary: 'Update user record - Returns number of modified items' })
-    @ApiParam({ name: 'id', description: 'Target user id', required: true })
-    async updateUserWithPrivileges(@Body() body: User, @Param() parameters): Promise<DbResponse> {
-        return this.userService.updateWithPrivileges(parameters.id, body);
+    @ApiOperation({ summary: PUT_USER })
+    @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
+    @Roles(SELF, ADMIN)
+    async updateUserWithPrivileges(@Request() request, @Body() body: User, @Param() parameters): Promise<DbResponse> {
+
+        if (request.user.authLevel === USER) {
+            return this.userService.update(parameters.id, body);
+        } else {
+            return this.userService.updateWithPrivileges(parameters.id, body);
+        }
+
     }
 
-
-    // TODO : Add unauthorized documentation
-    // ! : Handle case when a non admin user is requesting another record than his own
-    @UseGuards(AuthGuard('jwt'))
+    @ApiResponse({ status: 401, description: JWT_NOT_VALID })
+    @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
     @Get(':id')
-    @ApiOperation({ summary: 'Returns target User record' })
-    @ApiParam({ name: 'id', description: 'Target user id', required: true })
+    @ApiOperation({ summary: GET_USER })
+    @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
+    @Roles(USER_MANAGER, ADMIN)
     async getUser(@Param() parameters) {
         return this.userService.findUser(parameters.id);
     }

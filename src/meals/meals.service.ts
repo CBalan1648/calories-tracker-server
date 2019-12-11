@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from '../users/models/user.model';
-import { Meal } from './models/meals.model';
-import { MealPostBody } from './models/meal-post-body.model';
 import { DbResponse } from '../helpers/db-response.model';
+import { User } from '../users/models/user.model';
+import { MealPostBody } from './models/meal-post-body.model';
+import { Meal } from './models/meals.model';
 
 @Injectable()
 export class MealsService {

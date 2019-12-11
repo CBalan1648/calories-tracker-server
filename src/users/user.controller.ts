@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { BAD_REQUEST, CREATE_USER, LOGIN, USER_NOT_FOUND } from 'src/helpers/strings';
+import { BAD_REQUEST, CREATE_USER, LOGIN, USER_NOT_FOUND } from '../helpers/strings';
 import { AuthService } from '../auth/auth.service';
 import { LoginJwt } from '../auth/models/login-jwt.model';
 import { UserCredentialsDto } from './models/user-credentials.model';
@@ -14,6 +14,7 @@ export class UserController {
 
     constructor(private readonly userService: UserService, private readonly authService: AuthService) { }
 
+    // ! Handle case where the admin is creating the user
     @Post()
     @ApiOperation({ summary: CREATE_USER })
     @ApiResponse({ status: 400, description: BAD_REQUEST })

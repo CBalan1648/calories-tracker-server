@@ -6,24 +6,9 @@ import dbTestModule from '../db-test/db-test.module';
 import { UserController } from './user.controller';
 import { UserSchema } from './user.schema';
 import { UserService } from './user.service';
-
-jest.setTimeout(30000)
-
-const testUser = {
-    firstName: 'TestFirstName',
-    lastName: 'TestLastName',
-    email: 'test@test.test',
-    password: 'password123',
-};
-
-const createdUser = {
-    firstName: 'TestFirstName',
-    lastName: 'TestLastName',
-    email: 'test@test.test',
-    _id: 'aaa123',
-    authLevel: 'user',
-    targetCalories: 0,
-};
+import { UserRegistrationBodyDto } from './models/user-registration-body.model';
+import { User } from './models/user.model';
+import { UserCredentialsDto } from './models/user-credentials.model';
 
 describe('UserController', () => {
     let userController: UserController;
@@ -47,11 +32,62 @@ describe('UserController', () => {
     });
 
     describe('createUser', () => {
+
+        const testUser: UserRegistrationBodyDto = {
+            firstName: 'TestFirstName',
+            lastName: 'TestLastName',
+            email: 'test@test.test',
+            password: 'password123',
+        };
+
+        const createdUser: User = {
+            firstName: 'TestFirstName',
+            lastName: 'TestLastName',
+            email: 'test@test.test',
+            _id: 'aaa123',
+            authLevel: 'user',
+            targetCalories: 0,
+        };
+
+        it('Should call userService.createUser with the received body', async () => {
+            const mockedCreateNewUser = jest.fn();
+
+            jest.spyOn(userService, 'createNewUser').mockImplementation(mockedCreateNewUser);
+
+            userController.createUser(testUser);
+            expect(mockedCreateNewUser).toBeCalledWith(testUser);
+        });
+
         it('Should return the created user', async () => {
-            const user = { id: 'hello' };
             jest.spyOn(userService, 'createNewUser').mockImplementation(() => new Promise((resolve, reject) => resolve(createdUser)));
 
             expect(await userController.createUser(testUser)).toBe(createdUser);
         });
     });
+
+    describe('login', () => {
+
+        const loginBody: UserCredentialsDto = {
+            email: 'test@test.test',
+            password: 'password123',
+        };
+
+        const token = { access_token: 'ThisIsARealToken' };
+
+        it('Should call authService.login with the received body', async () => {
+            const mockedLogin = jest.fn();
+
+            jest.spyOn(authService, 'login').mockImplementation(mockedLogin);
+
+            userController.login(loginBody);
+            expect(mockedLogin).toBeCalledWith(loginBody);
+        });
+
+        it('Should return the userToken', async () => {
+            jest.spyOn(authService, 'login').mockImplementation(() => new Promise((resolve, reject) => resolve(token)));
+
+            expect(await userController.login(loginBody)).toBe(token);
+        });
+    });
+
 });

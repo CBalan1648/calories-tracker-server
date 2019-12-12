@@ -16,6 +16,7 @@ export const GET_USERS = 'Returns all User records';
 export const PUT_USER = 'Update user record - Returns number of modified items';
 export const GET_USER = 'Returns target User record';
 export const DELETE_USER = 'Delete user - Returns number of modified items';
+export const CREATE_USER_ADMIN = 'Create a new User with a selected authLevel - Returns created record';
 
 export const USER_ID_DESCRIPTION = 'Target user id';
 export const MEAL_ID_DESCRIPTION = 'Target meal id';

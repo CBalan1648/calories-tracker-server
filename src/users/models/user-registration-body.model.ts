@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsIn, IsNotEmpty, Length, Min } from 'class-validator';
-import { ADMIN, USER, USER_MANAGER } from 'src/helpers/userLevel.constants';
+import { ADMIN, USER, USER_MANAGER } from '../../helpers/userLevel.constants';
 
 export class UserRegistrationBodyDto {
     @ApiProperty()

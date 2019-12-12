@@ -4,7 +4,7 @@ import { AuthModule } from '../auth/auth.module';
 import dbTestModule from '../db-test/db-test.module';
 import { UserRegistrationBodyDto } from './models/user-registration-body.model';
 import { User } from './models/user.model';
-import { UserController } from './user.controller';
+import { GuestController } from './guest.controller';
 import { UserSchema } from './user.schema';
 import { UserService } from './user.service';
 
@@ -19,7 +19,7 @@ describe('UserService', () => {
                 MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
                 AuthModule,
             ],
-            controllers: [UserController],
+            controllers: [GuestController],
             providers: [UserService],
         }).compile();
 

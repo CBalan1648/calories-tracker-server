@@ -15,6 +15,12 @@ export class UserService {
         return userData;
     }
 
+    async createNewUserWithPrivileges(user: UserRegistrationBodyDto): Promise<User> {
+        const createdUser = await new this.userModel(user).save();
+        const { password, ...userData } = createdUser.toObject();
+        return userData;
+    }
+
     async findAll(): Promise<User[]> {
         return await this.userModel.find({}, { meals: 0, password: 0 }).exec();
     }

@@ -1,25 +1,26 @@
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
+import { MealsSchema } from '../meals/meals.schema';
 import { AuthModule } from '../auth/auth.module';
-import { AuthService } from '../auth/auth.service';
 import dbTestModule from '../db-test/db-test.module';
-import { UserController } from './user.controller';
+import { User } from './models/user.model';
 import { UserSchema } from './user.schema';
 import { UserService } from './user.service';
+import { UserController } from './user.controller';
+import { DbResponse } from '../helpers/db-response.model';
 import { UserRegistrationBodyDto } from './models/user-registration-body.model';
-import { User } from './models/user.model';
-import { UserCredentialsDto } from './models/user-credentials.model';
 
 describe('UserController', () => {
     let userController: UserController;
     let userService: UserService;
-    let authService: AuthService;
 
     beforeEach(async () => {
         const module = await Test.createTestingModule({
             imports: [
                 await dbTestModule({ name: (new Date().getTime() * Math.random()).toString(16) }),
-                MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+                MongooseModule.forFeature([
+                    { name: 'Meal', schema: MealsSchema },
+                    { name: 'User', schema: UserSchema }]),
                 AuthModule,
             ],
             controllers: [UserController],
@@ -28,7 +29,6 @@ describe('UserController', () => {
 
         userController = module.get<UserController>(UserController);
         userService = module.get<UserService>(UserService);
-        authService = module.get<AuthService>(AuthService);
     });
 
     describe('createUser', () => {
@@ -52,41 +52,177 @@ describe('UserController', () => {
         it('Should call userService.createUser with the received body', async () => {
             const mockedCreateNewUser = jest.fn();
 
-            jest.spyOn(userService, 'createNewUser').mockImplementation(mockedCreateNewUser);
+            jest.spyOn(userService, 'createNewUserWithPrivileges').mockImplementation(mockedCreateNewUser);
 
             userController.createUser(testUser);
             expect(mockedCreateNewUser).toBeCalledWith(testUser);
         });
 
         it('Should return the created user', async () => {
-            jest.spyOn(userService, 'createNewUser').mockImplementation(() => new Promise((resolve, reject) => resolve(createdUser)));
+            jest.spyOn(userService, 'createNewUserWithPrivileges').mockImplementation(() => new Promise((resolve, reject) => resolve(createdUser)));
 
             expect(await userController.createUser(testUser)).toBe(createdUser);
         });
     });
 
-    describe('login', () => {
+    describe('getAllUsers', () => {
 
-        const loginBody: UserCredentialsDto = {
+        const userOne: User = {
+            firstName: 'TestFirstName',
+            lastName: 'TestLastName',
             email: 'test@test.test',
-            password: 'password123',
+            _id: 'aaa123',
+            authLevel: 'USER',
+            targetCalories: 0,
         };
 
-        const token = { access_token: 'ThisIsARealToken' };
+        const userTwo: User = {
+            firstName: 'TestFirstName2',
+            lastName: 'TestLastName2',
+            email: 'test@test.test2',
+            _id: 'aaa1232',
+            authLevel: 'USER',
+            targetCalories: 2,
+        };
 
-        it('Should call authService.login with the received body', async () => {
-            const mockedLogin = jest.fn();
+        const usersArray = [userOne, userTwo];
 
-            jest.spyOn(authService, 'login').mockImplementation(mockedLogin);
+        it('Should call userService.findAll with the received body', async () => {
+            const mockedFindAll = jest.fn();
 
-            userController.login(loginBody);
-            expect(mockedLogin).toBeCalledWith(loginBody);
+            jest.spyOn(userService, 'findAll').mockImplementation(mockedFindAll);
+
+            userController.getAllUsers();
+            expect(mockedFindAll).toBeCalled();
         });
 
-        it('Should return the userToken', async () => {
-            jest.spyOn(authService, 'login').mockImplementation(() => new Promise((resolve, reject) => resolve(token)));
+        it('Should return a the service user array', async () => {
+            jest.spyOn(userService, 'findAll').mockImplementation(() => new Promise((resolve, reject) => resolve(usersArray)));
 
-            expect(await userController.login(loginBody)).toBe(token);
+            expect(await userController.getAllUsers()).toBe(usersArray);
+        });
+    });
+
+    describe('deleteUser', () => {
+
+        const parameters = {
+            id : 'ThisIsAUserID',
+        };
+
+        const dbResponse: DbResponse = {
+            n: 1,
+            nModified: 1,
+            ok: 1,
+        };
+
+        it('Should call userService.deleteUser with the user id', async () => {
+            const mockedDeleteUser = jest.fn();
+
+            jest.spyOn(userService, 'delete').mockImplementation(mockedDeleteUser);
+
+            userController.deleteUser(parameters);
+            expect(mockedDeleteUser).toBeCalledWith(parameters.id);
+        });
+
+        it('Should return a the db report', async () => {
+            jest.spyOn(userService, 'delete').mockImplementation(() => new Promise((resolve, reject) => resolve(dbResponse)));
+
+            expect(await userController.deleteUser(parameters)).toBe(dbResponse);
+        });
+    });
+
+    describe('updateUser', () => {
+
+        const userRequest = {
+            user : {
+                authLevel : 'USER',
+            },
+        };
+
+        const adminRequest = {
+            user : {
+                authLevel : 'ADMIN',
+            },
+        };
+
+        const parameters = {
+            id : 'ThisIsAUserID',
+        };
+
+        const userBody: User = {
+            firstName: 'TestFirstName',
+            lastName: 'TestLastName',
+            email: 'test@test.test',
+            _id: 'aaa123',
+            authLevel: 'user',
+            targetCalories: 0,
+        };
+
+        const dbResponse: DbResponse = {
+            n: 1,
+            nModified: 1,
+            ok: 1,
+        };
+
+        it('Should call userService.update with the user id', async () => {
+            const mockUpdate = jest.fn();
+
+            jest.spyOn(userService, 'update').mockImplementation(mockUpdate);
+
+            userController.updateUser(userRequest, userBody, parameters);
+            expect(mockUpdate).toBeCalledWith(parameters.id, userBody);
+        });
+
+        it('Should call userService.updateWithPrivileges with the user id', async () => {
+            const mockUpdateWithPrivileges = jest.fn();
+
+            jest.spyOn(userService, 'updateWithPrivileges').mockImplementation(mockUpdateWithPrivileges);
+
+            userController.updateUser(adminRequest, userBody, parameters);
+            expect(mockUpdateWithPrivileges).toBeCalledWith(parameters.id, userBody);
+        });
+
+        it('Should return a the db report (update)', async () => {
+            jest.spyOn(userService, 'update').mockImplementation(() => new Promise((resolve, reject) => resolve(dbResponse)));
+
+            expect(await userController.updateUser(userRequest, userBody, parameters)).toBe(dbResponse);
+        });
+
+        it('Should return a the db report (updateWithPrivileges)', async () => {
+            jest.spyOn(userService, 'updateWithPrivileges').mockImplementation(() => new Promise((resolve, reject) => resolve(dbResponse)));
+
+            expect(await userController.updateUser(adminRequest, userBody, parameters)).toBe(dbResponse);
+        });
+    });
+
+    describe('getUser', () => {
+
+        const parameters = {
+            id : 'ThisIsAUserID',
+        };
+
+        const user: User = {
+            firstName: 'TestFirstName',
+            lastName: 'TestLastName',
+            email: 'test@test.test',
+            _id: 'aaa123',
+            authLevel: 'user',
+            targetCalories: 0,
+        };
+
+        it('Should call userService.findUser with the user id', async () => {
+            const mockedFindUser = jest.fn();
+
+            jest.spyOn(userService, 'findUser').mockImplementation(mockedFindUser);
+
+            userController.getUser(parameters);
+            expect(mockedFindUser).toBeCalledWith(parameters.id);
+        });
+
+        it('Should return a the user', async () => {
+            jest.spyOn(userService, 'findUser').mockImplementation(() => new Promise((resolve, reject) => resolve(user)));
+
+            expect(await userController.getUser(parameters)).toBe(user);
         });
     });
 

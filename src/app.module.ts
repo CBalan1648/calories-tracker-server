@@ -4,10 +4,9 @@ import { AppService } from './app.service';
 import { UserModule } from './users/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MealsModule } from './meals/meals.module';
-import { SuperuserModule } from './superuser/superuser.module';
 
 @Module({
-  imports: [UserModule, MealsModule, SuperuserModule, MongooseModule.forRoot('mongodb://localhost:27017')],
+  imports: [UserModule, MealsModule, MongooseModule.forRoot('mongodb://localhost:27017')],
   controllers: [AppController],
   providers: [AppService],
 })

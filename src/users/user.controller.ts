@@ -1,32 +1,72 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { BAD_REQUEST, CREATE_USER, LOGIN, USER_NOT_FOUND } from '../helpers/strings';
-import { AuthService } from '../auth/auth.service';
-import { LoginJwt } from '../auth/models/login-jwt.model';
-import { UserCredentialsDto } from './models/user-credentials.model';
+import { Body, Controller, Delete, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { DbResponse } from '../helpers/db-response.model';
+import { BAD_REQUEST, CREATE_USER_ADMIN, DELETE_USER, GET_USER, GET_USERS, INSUFFICIENT_PRIVILEGES, JWT_NOT_VALID, PUT_USER, USER_ID_DESCRIPTION } from '../helpers/strings';
+import { ADMIN, SELF, USER, USER_MANAGER } from '../helpers/userLevel.constants';
+import { Roles } from '../helpers/userLevel.decorator';
+import { UserLevelGuard } from '../helpers/userLevel.guard';
 import { UserRegistrationBodyDto } from './models/user-registration-body.model';
 import { User } from './models/user.model';
 import { UserService } from './user.service';
 
-@ApiTags('User')
+@UseGuards(AuthGuard('jwt'), UserLevelGuard)
+@ApiBearerAuth()
+@ApiTags('Users')
 @Controller('api/users')
 export class UserController {
 
-    constructor(private readonly userService: UserService, private readonly authService: AuthService) { }
+    constructor(private readonly userService: UserService) { }
 
-    // ! Handle case where the admin is creating the user
     @Post()
-    @ApiOperation({ summary: CREATE_USER })
+    @ApiOperation({ summary: CREATE_USER_ADMIN })
     @ApiResponse({ status: 400, description: BAD_REQUEST })
+    @Roles(ADMIN)
     async createUser(@Body() user: UserRegistrationBodyDto): Promise<User> {
-        return await this.userService.createNewUser(user);
+        return await this.userService.createNewUserWithPrivileges(user);
     }
 
-    @Post('login')
-    @ApiOperation({ summary: LOGIN })
-    @ApiResponse({ status: 404, description: USER_NOT_FOUND })
-    @ApiResponse({ status: 400, description: BAD_REQUEST })
-    async login(@Body() credentials: UserCredentialsDto): Promise<LoginJwt> {
-        return this.authService.login(credentials);
+    @ApiResponse({ status: 401, description: JWT_NOT_VALID })
+    @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
+    @Get()
+    @Roles(USER_MANAGER, ADMIN)
+    @ApiOperation({ summary: GET_USERS })
+    async getAllUsers(): Promise<User[]> {
+        return this.userService.findAll();
+    }
+
+    @ApiResponse({ status: 401, description: JWT_NOT_VALID })
+    @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
+    @Delete(':id')
+    @ApiOperation({ summary: DELETE_USER })
+    @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
+    @Roles(USER_MANAGER, ADMIN)
+    async deleteUser(@Param() paramters): Promise<DbResponse> {
+        return this.userService.delete(paramters.id);
+    }
+
+    @ApiResponse({ status: 401, description: JWT_NOT_VALID })
+    @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
+    @Put(':id')
+    @ApiOperation({ summary: PUT_USER })
+    @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
+    @Roles(SELF, ADMIN)
+    async updateUser(@Request() request, @Body() body: User, @Param() parameters): Promise<DbResponse> {
+
+        if (request.user.authLevel === USER) {
+            return this.userService.update(parameters.id, body);
+        } else {
+            return this.userService.updateWithPrivileges(parameters.id, body);
+        }
+    }
+
+    @ApiResponse({ status: 401, description: JWT_NOT_VALID })
+    @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
+    @Get(':id')
+    @ApiOperation({ summary: GET_USER })
+    @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
+    @Roles(USER_MANAGER, ADMIN)
+    async getUser(@Param() parameters) {
+        return this.userService.findUser(parameters.id);
     }
 }

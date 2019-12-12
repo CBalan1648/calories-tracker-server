@@ -36,7 +36,7 @@ export class MealsController {
     @Roles(SELF, USER_MANAGER, ADMIN)
     @Post(':id/meals')
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
-    async addMeal(@Param() parameters, @Body() meal: MealPostBody) {
+    async addMeal(@Param() parameters, @Body() meal: MealPostBody): Promise<Meal> {
         return this.mealsService.addMeal(parameters.id, meal);
     }
 
@@ -51,7 +51,7 @@ export class MealsController {
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
     @ApiParam({ name: 'mealId', description: MEAL_ID_DESCRIPTION, required: true })
     @Roles(SELF, USER_MANAGER, ADMIN)
-    async updateMeal(@Body() meal: Meal, @Param() parameters): Promise<DbResponse> {
+    async updateMeal(@Param() parameters, @Body() meal: Meal): Promise<DbResponse> {
         return this.mealsService.updateMeal(parameters.id, parameters.mealId, meal);
     }
 

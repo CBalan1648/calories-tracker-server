@@ -6,7 +6,6 @@ import { ADMIN, SELF, USER, USER_MANAGER } from '../helpers/userLevel.constants'
 import { DbResponse } from '../helpers/db-response.model';
 import { Roles } from '../helpers/userLevel.decorator';
 import { UserLevelGuard } from '../helpers/userLevel.guard';
-import { MealsService } from '../meals/meals.service';
 import { User } from '../users/models/user.model';
 import { UserService } from '../users/user.service';
 
@@ -16,7 +15,7 @@ import { UserService } from '../users/user.service';
 @Controller('api/users')
 export class SuperuserController {
 
-    constructor(private readonly userService: UserService, private readonly mealsService: MealsService) { }
+    constructor(private readonly userService: UserService) { }
 
     @ApiResponse({ status: 401, description: JWT_NOT_VALID })
     @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
@@ -43,7 +42,7 @@ export class SuperuserController {
     @ApiOperation({ summary: PUT_USER })
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
     @Roles(SELF, ADMIN)
-    async updateUserWithPrivileges(@Request() request, @Body() body: User, @Param() parameters): Promise<DbResponse> {
+    async updateUser(@Request() request, @Body() body: User, @Param() parameters): Promise<DbResponse> {
 
         if (request.user.authLevel === USER) {
             return this.userService.update(parameters.id, body);

@@ -4,11 +4,11 @@ import { AuthModule } from '../auth/auth.module';
 import { AuthService } from '../auth/auth.service';
 import dbTestModule from '../db-test/db-test.module';
 import { GuestController } from './guest.controller';
+import { UserAddNewBodyDto } from './models/user-add-body.model';
+import { UserCredentialsDto } from './models/user-credentials.model';
+import { User } from './models/user.model';
 import { UserSchema } from './user.schema';
 import { UserService } from './user.service';
-import { UserRegistrationBodyDto } from './models/user-registration-body.model';
-import { User } from './models/user.model';
-import { UserCredentialsDto } from './models/user-credentials.model';
 
 describe('GuestController', () => {
     let guestController: GuestController;
@@ -33,7 +33,7 @@ describe('GuestController', () => {
 
     describe('createUser', () => {
 
-        const testUser: UserRegistrationBodyDto = {
+        const testUser: UserAddNewBodyDto = {
             firstName: 'TestFirstName',
             lastName: 'TestLastName',
             email: 'test@test.test',

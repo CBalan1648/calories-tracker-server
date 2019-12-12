@@ -3,8 +3,8 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { LoginJwt } from '../auth/models/login-jwt.model';
 import { BAD_REQUEST, CREATE_USER, LOGIN, USER_NOT_FOUND } from '../helpers/strings';
+import { UserAddNewBodyDto } from './models/user-add-body.model';
 import { UserCredentialsDto } from './models/user-credentials.model';
-import { UserRegistrationBodyDto } from './models/user-registration-body.model';
 import { User } from './models/user.model';
 import { UserService } from './user.service';
 
@@ -17,7 +17,7 @@ export class GuestController {
     @Post('new')
     @ApiOperation({ summary: CREATE_USER })
     @ApiResponse({ status: 400, description: BAD_REQUEST })
-    async createUser(@Body() user: UserRegistrationBodyDto): Promise<User> {
+    async createUser(@Body() user: UserAddNewBodyDto): Promise<User> {
         return await this.userService.createNewUser(user);
     }
 

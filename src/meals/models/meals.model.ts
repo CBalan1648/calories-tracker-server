@@ -3,7 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 // TODO : Add pipe validation;
 export class Meal {
-    @ApiProperty()
+    @ApiPropertyOptional()
     _id: string;
 
     @ApiProperty()

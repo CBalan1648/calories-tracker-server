@@ -36,7 +36,7 @@ export class MealsController {
     @Roles(SELF, USER_MANAGER, ADMIN)
     @Post(':id/meals')
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
-    async addMeal(@Param() parameters, @Body() meal: MealPostBody): Promise<Meal> {
+    async addMeal(@Param() parameters, @Body() meal: Meal): Promise<Meal> {
         return this.mealsService.addMeal(parameters.id, meal);
     }
 

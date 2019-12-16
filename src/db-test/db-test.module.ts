@@ -1,11 +1,10 @@
 import { MongooseModule } from '@nestjs/mongoose';
+import { mongoose } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-
-const mongod = new MongoMemoryServer();
 
 export default () => MongooseModule.forRootAsync({
   useFactory: async () => {
-
+    const mongod = new MongoMemoryServer();
     const port = await mongod.getPort();
     const database = await mongod.getDbName();
 

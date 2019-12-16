@@ -10,22 +10,20 @@ export class UserService {
     constructor(@InjectModel('User') private readonly userModel: Model<User>) { }
 
     async createNewUser(user: UserRegistrationBodyDto): Promise<User> {
-        const createdUser = await new this.userModel(user).save();
-        const { password, ...userData } = createdUser.toObject();
-        return userData;
+        const createdUser = await new this.userModel(stripAuthLevel(user)).save();
+        return stripPassword(createdUser.toObject());
     }
 
     async createNewUserWithPrivileges(user: UserRegistrationBodyDto): Promise<User> {
         const createdUser = await new this.userModel(user).save();
-        const { password, ...userData } = createdUser.toObject();
-        return userData;
+        return stripPassword(createdUser.toObject());
     }
 
     async findAll(): Promise<User[]> {
         return await this.userModel.find({}, { meals: 0, password: 0 }).exec();
     }
 
-    async update(id, user): Promise<DbResponse> {
+    async update(id: string, user: User): Promise<DbResponse> {
         return await this.userModel.updateOne({ _id: id }, {
             $set: {
                 firstName: user.firstName,
@@ -54,3 +52,17 @@ export class UserService {
         return await this.userModel.find({ _id: id });
     }
 }
+
+const stripAuthLevel = (user: UserRegistrationBodyDto): UserRegistrationBodyDto => {
+    const { authLevel, ...userBody } = user;
+    return userBody;
+};
+
+interface UserWithPassword extends User {
+    password: string;
+}
+
+const stripPassword = (user: UserWithPassword): User => {
+    const { password, ...userBody } = user;
+    return userBody;
+};

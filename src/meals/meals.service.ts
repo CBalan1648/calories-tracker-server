@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DbResponse } from '../helpers/db-response.model';
 import { User } from '../users/models/user.model';
-import { MealPostBody } from './models/meal-post-body.model';
 import { Meal } from './models/meals.model';
 
 @Injectable()
@@ -12,7 +11,7 @@ export class MealsService {
         @InjectModel('User') private readonly userModel: Model<User>,
     ) { }
 
-    async addMeal(userId: string, meal: MealPostBody): Promise<Meal> {
+    async addMeal(userId: string, meal: Meal): Promise<Meal> {
         const updatedUserCursor = await this.userModel.findOneAndUpdate({ _id: userId }, {
             $push: {
                 meals: meal,

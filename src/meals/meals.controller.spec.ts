@@ -6,7 +6,6 @@ import { UserSchema } from '../users/user.schema';
 import { MealsController } from './meals.controller';
 import { MealsSchema } from './meals.schema';
 import { MealsService } from './meals.service';
-import { MealPostBody } from './models/meal-post-body.model';
 import { Meal } from './models/meals.model';
 
 describe('UserController', () => {
@@ -36,7 +35,7 @@ describe('UserController', () => {
             id: 'ThisIsAUserID',
         };
 
-        const postMealBody: MealPostBody = {
+        const postMealBody: Meal = {
             title: 'The Meal',
             time: 100000011001,
             calories: 350,

@@ -18,7 +18,7 @@ describe('GuestController', () => {
     beforeEach(async () => {
         const module = await Test.createTestingModule({
             imports: [
-                await dbTestModule({ name: (new Date().getTime() * Math.random()).toString(16) }),
+                await dbTestModule(),
                 MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
                 AuthModule,
             ],

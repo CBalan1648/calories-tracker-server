@@ -1,11 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class DbResponse {
     @ApiProperty()
     n: number;
 
-    @ApiProperty()
-    nModified: number;
+    @ApiPropertyOptional()
+    nModified?: number;
+
+    @ApiPropertyOptional()
+    deletedCount?: number;
 
     @ApiProperty()
     ok: number;

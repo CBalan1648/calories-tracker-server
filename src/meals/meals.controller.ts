@@ -17,7 +17,6 @@ import { DbResponse } from '../helpers/db-response.model';
 import { Roles } from '../helpers/userLevel.decorator';
 import { UserLevelGuard } from '../helpers/userLevel.guard';
 import { MealsService } from './meals.service';
-import { MealPostBody } from './models/meal-post-body.model';
 import { Meal } from './models/meals.model';
 
 @UseGuards(AuthGuard('jwt'), UserLevelGuard)

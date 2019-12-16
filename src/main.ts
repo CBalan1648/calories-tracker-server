@@ -3,6 +3,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
+// TODO extract to a config file
+const serverPort = 3000;
+
 const options = new DocumentBuilder()
 .setTitle('Calories Tracker - API Documentation')
 .setDescription('This document describes endpoints for users and meals CRUD operations')
@@ -18,6 +21,6 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   app.enableCors();
-  await app.listen(3000);
+  await app.listen(serverPort);
 }
 bootstrap();

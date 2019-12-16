@@ -46,7 +46,7 @@ export class UserService {
         });
     }
 
-    async delete(id: string): Promise<any> {
+    async delete(id: string): Promise<DbResponse> {
         return await this.userModel.deleteOne({ _id: id });
     }
 

@@ -4,7 +4,7 @@ import { AuthModule } from '../auth/auth.module';
 import { GuestController } from './guest.controller';
 import { UserSchema } from './user.schema';
 import { UserService } from './user.service';
-import { MealsSchema } from 'src/meals/meals.schema';
+import { MealsSchema } from '../meals/meals.schema';
 import { UserController } from './user.controller';
 
 @Module({

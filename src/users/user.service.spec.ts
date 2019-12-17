@@ -13,7 +13,7 @@ describe('UserService', () => {
     let userService: UserService;
     let module: TestingModule;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         module = await Test.createTestingModule({
             imports: [
                 dbTestModule(),
@@ -36,141 +36,171 @@ describe('UserService', () => {
             authLevel: 'ADMIN',
         };
 
-        it('Should create call the user model with the user', async () => {
-            let called: User;
+        it('Should create call the userModel.save with the user and ignore the authLevel', async () => {
+            let returnedUser: User;
+            let savedUser: User;
 
             const mockedSave = jest.fn();
 
             const mockEnvironment = {
-                userModel : (user) => {
-                    called = user;
-                    return {
-                        save : mockedSave,
+                userModel: function UserModel(user) {
+                    this.user = user;
+                    this.save = () => {
+                        mockedSave();
+                        savedUser = this.user;
+                        return this;
                     };
+                    this.toObject = () => user;
                 },
             };
 
-            await userService.createNewUser.call(mockEnvironment, testUser);
+            returnedUser = await userService.createNewUser.call(mockEnvironment, testUser);
 
             expect(mockedSave).toHaveBeenCalled();
-            expect(called.firstName).toEqual(testUser.firstName);
 
-        });
+            expect(savedUser.authLevel).toBeUndefined();
+            expect(savedUser.firstName).toEqual(testUser.firstName);
+            expect(savedUser.lastName).toEqual(testUser.lastName);
+            expect(savedUser.email).toEqual(testUser.email);
 
-        it('Should create a new user ignoring the authLevel', async () => {
-            const createNewUser = await userService.createNewUser(testUser);
+            expect(returnedUser.firstName).toEqual(testUser.firstName);
+            expect(returnedUser.lastName).toEqual(testUser.lastName);
+            expect(returnedUser.email).toEqual(testUser.email);
 
-            expect(createNewUser._id).toBeTruthy();
-            expect(createNewUser.firstName).toEqual(testUser.firstName);
-            expect(createNewUser.lastName).toEqual(testUser.lastName);
-            expect(createNewUser.email).toEqual(testUser.email);
             // @ts-ignore
-            expect(createNewUser.password).toBeUndefined();
-            expect(createNewUser.authLevel).toEqual('USER');
-        });
+            expect(returnedUser.passWord).toBeUndefined();
 
+        });
     });
 
     describe('createNewUserWithPrivileges', () => {
 
-        const testUser: UserRegistrationBodyDto = {
-            firstName: 'TestFirstName',
-            lastName: 'TestLastName',
-            email: 'test2@test.test',
-            password: 'password123',
-            authLevel: 'ADMIN',
-        };
+        it('Should create call the userModel.save with the user', async () => {
 
-        it('Should create a new user respecting the authLevel', async () => {
-            const createNewUser = await userService.createNewUserWithPrivileges(testUser);
+            const testUser: UserRegistrationBodyDto = {
+                firstName: 'TestFirstName',
+                lastName: 'TestLastName',
+                email: 'test2@test.test',
+                password: 'password123',
+                authLevel: 'ADMIN',
+            };
 
-            expect(createNewUser._id).toBeTruthy();
-            expect(createNewUser.firstName).toEqual(testUser.firstName);
-            expect(createNewUser.lastName).toEqual(testUser.lastName);
-            expect(createNewUser.email).toEqual(testUser.email);
+            let returnedUser: User;
+            let savedUser: User;
+
+            const mockedSave = jest.fn();
+
+            const mockEnvironment = {
+                userModel: function UserModel(user) {
+                    this.user = user;
+                    this.save = () => {
+                        mockedSave();
+                        savedUser = this.user;
+                        return this;
+                    };
+                    this.toObject = () => user;
+                },
+            };
+
+            returnedUser = await userService.createNewUserWithPrivileges.call(mockEnvironment, testUser);
+
+            expect(mockedSave).toHaveBeenCalled();
+
+            expect(savedUser.authLevel).toEqual(testUser.authLevel);
+            expect(savedUser.firstName).toEqual(testUser.firstName);
+            expect(savedUser.lastName).toEqual(testUser.lastName);
+            expect(savedUser.email).toEqual(testUser.email);
+
+            expect(returnedUser.firstName).toEqual(testUser.firstName);
+            expect(returnedUser.lastName).toEqual(testUser.lastName);
+            expect(returnedUser.email).toEqual(testUser.email);
+
             // @ts-ignore
-            expect(createNewUser.password).toBeUndefined();
-            expect(createNewUser.authLevel).toEqual(testUser.authLevel);
+            expect(returnedUser.passWord).toBeUndefined();
+
         });
 
     });
 
     describe('findAll', () => {
 
-        const testUser: UserRegistrationBodyDto = {
-            firstName: 'TestFirstName1',
-            lastName: 'TestLastName1',
-            email: 'test3@test.test',
-            password: 'password123',
-            authLevel: 'ADMIN',
-        };
+        it('Should create call the userModel.find.exec with the filterParameters', async () => {
+            const filterParametersOne = {};
+            const filterParametersTwo = { meals: 0, password: 0 };
 
-        const testUserTwo: UserRegistrationBodyDto = {
-            firstName: 'TestFirstName2',
-            lastName: 'TestLastName2',
-            email: 'test4@test.test',
-            password: 'password123',
-            authLevel: 'USER',
-        };
+            let callParameterOne;
+            let callParameterTwo;
 
-        const addedUsersArray = [testUser, testUserTwo];
+            const userOne = 'user';
+            const userTwo = 'anotherUser';
 
-        it('Should return all users minus passwords and meals', async () => {
-            await userService.createNewUserWithPrivileges(testUser);
-            await userService.createNewUserWithPrivileges(testUserTwo);
-            const users = await userService.findAll();
+            const mockedFind = jest.fn();
 
-            for (const [index, testedUser] of [...users].entries()) {
+            const mockEnvironment = {
+                userModel: {
+                    find: (parameterOne, parameterTwo) => {
+                        callParameterOne = parameterOne;
+                        callParameterTwo = parameterTwo;
+                        return {
+                            exec: () => {
+                                mockedFind();
+                                return [userOne, userTwo];
+                            },
+                        };
+                    },
+                },
+            };
 
-                const addedUser = addedUsersArray[index];
-                expect(testedUser._id).toBeTruthy();
-                expect(testedUser.firstName).toEqual(addedUser.firstName);
-                expect(testedUser.lastName).toEqual(addedUser.lastName);
-                expect(testedUser.email).toEqual(addedUser.email);
-                expect(testedUser.authLevel).toEqual(addedUser.authLevel);
-                // @ts-ignore
-                expect(testedUser.password).toBeUndefined();
-                // @ts-ignore
-                expect(testedUser.meals).toBeUndefined();
-            }
+            const returnedUsers = await userService.findAll.call(mockEnvironment);
 
+            expect(mockedFind).toHaveBeenCalled();
+            expect(callParameterOne).toEqual(filterParametersOne);
+            expect(callParameterTwo.meals).toEqual(filterParametersTwo.meals);
+            expect(callParameterTwo.password).toEqual(filterParametersTwo.password);
+            expect(returnedUsers[0]).toEqual(userOne);
+            expect(returnedUsers[1]).toEqual(userTwo);
         });
 
     });
 
     describe('update', () => {
 
-        const testUserRegisterBody: UserRegistrationBodyDto = {
-            firstName: 'TestFirstName1',
-            lastName: 'TestLastName1',
-            email: 'test3@test.test',
-            password: 'password123',
-            authLevel: 'ADMIN',
-        };
+        it('Should create call the userModel.updateOne with the user data', async () => {
 
-        const testUser: User = {
-            firstName: 'ModifiedFirstName',
-            lastName: 'ModifiedFirstName',
-            email: 'NewEmail@test.test',
-            authLevel: 'USER',
-            _id: 'This does not matter',
-            targetCalories: 321,
-        };
+            const providedId = 'ThisIsAnotherId';
 
-        it('Should update target user but email and authLevel', async () => {
-            const newUser = await userService.createNewUserWithPrivileges(testUserRegisterBody);
-            const updated = await userService.update(newUser._id, testUser);
-            const users = await userService.findAll();
+            const updateUser: User = {
+                _id: 'ThisIsAnId',
+                firstName: 'TestFirstName',
+                lastName: 'TestLastName',
+                email: 'test2@test.test',
+                authLevel: 'ADMIN',
+                targetCalories: 500,
+            };
 
-            expect(updated.nModified).toEqual(1);
+            let callParameterOne;
+            let callParameterTwo;
 
-            const modifiedUser = users[0];
+            const mockerUpdate = jest.fn();
 
-            expect(modifiedUser._id).toEqual(newUser._id);
-            expect(modifiedUser.firstName).toEqual(testUser.firstName);
-            expect(modifiedUser.lastName).toEqual(testUser.lastName);
-            expect(modifiedUser.email).toEqual(testUserRegisterBody.email);
-            expect(modifiedUser.authLevel).toEqual(testUserRegisterBody.authLevel);
+            const mockEnvironment = {
+                userModel: {
+                    updateOne: (parameterOne, parameterTwo) => {
+                        mockerUpdate();
+                        callParameterOne = parameterOne;
+                        callParameterTwo = parameterTwo;
+                    },
+                },
+            };
+
+            await userService.update.call(mockEnvironment, providedId, updateUser);
+
+            expect(mockerUpdate).toHaveBeenCalled();
+
+            expect(callParameterOne._id).toEqual(providedId);
+            expect(callParameterTwo.$set.firstName).toEqual(updateUser.firstName);
+            expect(callParameterTwo.$set.lastName).toEqual(updateUser.lastName);
+            expect(callParameterTwo.$set.targetCalories).toEqual(updateUser.targetCalories);
 
         });
 
@@ -178,37 +208,43 @@ describe('UserService', () => {
 
     describe('updateWithPrivileges', () => {
 
-        const testUserRegisterBody: UserRegistrationBodyDto = {
-            firstName: 'TestFirstName1',
-            lastName: 'TestLastName1',
-            email: 'test3@test.test',
-            password: 'password123',
-            authLevel: 'ADMIN',
-        };
+        it('Should create call the userModel.updateOne with the user data', async () => {
 
-        const testUser: User = {
-            firstName: 'ModifiedFirstName',
-            lastName: 'ModifiedFirstName',
-            email: 'NewEmail@test.test',
-            authLevel: 'USER',
-            _id: 'This does not matter',
-            targetCalories: 321,
-        };
+            const providedId = 'ThisIsAnotherId';
 
-        it('Should update target user but email', async () => {
-            const newUser = await userService.createNewUserWithPrivileges(testUserRegisterBody);
-            const updated = await userService.updateWithPrivileges(newUser._id, testUser);
-            const users = await userService.findAll();
+            const updateUser: User = {
+                _id: 'ThisIsAnId',
+                firstName: 'TestFirstName',
+                lastName: 'TestLastName',
+                email: 'test2@test.test',
+                authLevel: 'ADMIN',
+                targetCalories: 500,
+            };
 
-            expect(updated.nModified).toEqual(1);
+            let callParameterOne;
+            let callParameterTwo;
 
-            const modifiedUser = users[0];
+            const mockerUpdate = jest.fn();
 
-            expect(modifiedUser._id).toEqual(newUser._id);
-            expect(modifiedUser.firstName).toEqual(testUser.firstName);
-            expect(modifiedUser.lastName).toEqual(testUser.lastName);
-            expect(modifiedUser.email).toEqual(testUserRegisterBody.email);
-            expect(modifiedUser.authLevel).toEqual(testUser.authLevel);
+            const mockEnvironment = {
+                userModel: {
+                    updateOne: (parameterOne, parameterTwo) => {
+                        mockerUpdate();
+                        callParameterOne = parameterOne;
+                        callParameterTwo = parameterTwo;
+                    },
+                },
+            };
+
+            await userService.updateWithPrivileges.call(mockEnvironment, providedId, updateUser);
+
+            expect(mockerUpdate).toHaveBeenCalled();
+
+            expect(callParameterOne._id).toEqual(providedId);
+            expect(callParameterTwo.$set.firstName).toEqual(updateUser.firstName);
+            expect(callParameterTwo.$set.lastName).toEqual(updateUser.lastName);
+            expect(callParameterTwo.$set.targetCalories).toEqual(updateUser.targetCalories);
+            expect(callParameterTwo.$set.authLevel).toEqual(updateUser.authLevel);
 
         });
 
@@ -216,38 +252,56 @@ describe('UserService', () => {
 
     describe('delete', () => {
 
-        const testUser: UserRegistrationBodyDto = {
-            firstName: 'TestFirstName1',
-            lastName: 'TestLastName1',
-            email: 'test3@test.test',
-            password: 'password123',
-            authLevel: 'ADMIN',
-        };
+        it('Should create call the userModel.delete with the user id', async () => {
 
-        const testUserTwo: UserRegistrationBodyDto = {
-            firstName: 'TestFirstName2',
-            lastName: 'TestLastName2',
-            email: 'test4@test.test',
-            password: 'password123',
-            authLevel: 'USER',
-        };
+            const providedId = 'ThisIsAUserId';
 
-        it('Should delete the target user', async () => {
-            const userOne = await userService.createNewUserWithPrivileges(testUser);
-            const userTwo = await userService.createNewUserWithPrivileges(testUserTwo);
-            const users = await userService.findAll();
-            const updated = await userService.delete(userOne._id);
-            const usersAfterDelete = await userService.findAll();
+            let callParameterOne;
 
-            expect(users.length).toEqual(2);
-            expect(usersAfterDelete.length).toEqual(1);
-            expect(updated.deletedCount).toEqual(1);
+            const mockedDelete = jest.fn();
 
-            const remainingUser = usersAfterDelete[0];
-            expect(remainingUser._id).toEqual(userTwo._id);
+            const mockEnvironment = {
+                userModel: {
+                    deleteOne: (parameterOne, parameterTwo) => {
+                        mockedDelete();
+                        callParameterOne = parameterOne;
 
+                    },
+                },
+            };
+
+            await userService.delete.call(mockEnvironment, providedId);
+
+            expect(mockedDelete).toHaveBeenCalled();
+            expect(callParameterOne._id).toEqual(providedId);
         });
 
     });
 
+    describe('findUser', () => {
+
+        it('Should call the userModel.find with the user id', async () => {
+
+            const providedId = 'ThisIsAUserId';
+
+            let callParameterOne;
+
+            const mockedFind = jest.fn();
+
+            const mockEnvironment = {
+                userModel: {
+                    find: (parameterOne) => {
+                        mockedFind();
+                        callParameterOne = parameterOne;
+
+                    },
+                },
+            };
+
+            await userService.findUser.call(mockEnvironment, providedId);
+
+            expect(mockedFind).toHaveBeenCalled();
+            expect(callParameterOne._id).toEqual(providedId);
+        });
+    });
 });

@@ -53,7 +53,7 @@ export class UserService {
     }
 }
 
-const stripAuthLevel = (user: UserRegistrationBodyDto): UserRegistrationBodyDto => {
+export const stripAuthLevel = (user: UserRegistrationBodyDto): UserRegistrationBodyDto => {
     const { authLevel, ...userBody } = user;
     return userBody;
 };
@@ -62,7 +62,7 @@ interface UserWithPassword extends User {
     password: string;
 }
 
-const stripPassword = (user: UserWithPassword): User => {
+export const stripPassword = (user: UserWithPassword): User => {
     const { password, ...userBody } = user;
     return userBody;
 };

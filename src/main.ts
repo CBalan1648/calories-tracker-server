@@ -4,6 +4,8 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 // TODO extract to a config file
+
+// TODO remove x-powered-by header
 const serverPort = 3000;
 
 const options = new DocumentBuilder()

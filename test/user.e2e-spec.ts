@@ -1,21 +1,43 @@
+import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from '../src/users/user.controller';
+import * as request from 'supertest';
 import { AuthModule } from '../src/auth/auth.module';
 import dbTestModule from '../src/db-test/db-test.module';
+import { GuestController } from '../src/users/guest.controller';
 import { UserRegistrationBodyDto } from '../src/users/models/user-registration-body.model';
 import { User } from '../src/users/models/user.model';
+import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import * as request from 'supertest';
-import { GuestController } from '../src/users/guest.controller';
+import { USER } from '../src/helpers/userLevel.constants';
 
-let admin_token;
-let normal_token;
+const adminUser: UserRegistrationBodyDto = {
+    firstName: 'AdminFirstName',
+    lastName: 'AdminLastName',
+    email: 'admin@caloriesTracker.com',
+    password: '123123123123',
+    authLevel: 'ADMIN',
+};
+
+const normalUser: UserRegistrationBodyDto = {
+    firstName: 'UserFirstName',
+    lastName: 'UserLastName',
+    email: 'user@caloriesTracker.com',
+    password: '123123123123',
+    authLevel: 'USER',
+};
+
+const userManager: UserRegistrationBodyDto = {
+    firstName: 'UserManagerFirstName',
+    lastName: 'UserManagerLastName',
+    email: 'userManager@caloriesTracker.com',
+    password: '123123123123',
+    authLevel: 'USER_MANAGER',
+};
 
 describe('UserController (e2e)', () => {
     let app;
-    let userController: UserController;
     let guestController: GuestController;
     let userService: UserService;
     let module: TestingModule;
@@ -31,56 +53,89 @@ describe('UserController (e2e)', () => {
             providers: [UserService],
         }).compile();
 
-        userController = module.get<UserController>(UserController);
         userService = module.get<UserService>(UserService);
         guestController = module.get<GuestController>(GuestController);
 
         app = module.createNestApplication();
+        app.useGlobalPipes(new ValidationPipe());
         await app.init();
 
-        const adminUser: UserRegistrationBodyDto = {
-            firstName: 'TestFirstName',
-            lastName: 'TestLastName',
-            email: 'admin@admin.com',
-            password: '123123123123',
-            authLevel: 'ADMIN',
-        };
-
-        const normalUser: UserRegistrationBodyDto = {
-            firstName: 'TestFirstName',
-            lastName: 'TestLastName',
-            email: 'admin@admin.com',
-            password: '123123123123',
-            authLevel: 'ADMIN',
-        };
-
-        await userService.createNewUserWithPrivileges(adminUser);
-        const adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
-        admin_token = adminLogin.access_token;
-
-        await userService.createNewUserWithPrivileges(normalUser);
-        const normalLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
-        normal_token = normalLogin.access_token;
     });
 
     describe('/api/users/ (POST)', () => {
+
+        let createdAdminUser;
+        let adminLogin;
+
+        let createdRegularUser;
+        let userLogin;
+
+        let createdUserManager;
+        let userManagerLogin;
 
         const testUser: UserRegistrationBodyDto = {
             firstName: 'TestFirstName',
             lastName: 'TestLastName',
             email: 'test@test.test',
-            password: 'password123',
+            password: 'password123123',
+            authLevel: USER,
+            targetCalories: 0,
         };
 
-        it('Should create a new user ignoring the authLevel', async () => {
+        const testUserEmptyFirstName: UserRegistrationBodyDto = {
+            ...testUser,
+            firstName: '',
+        };
+
+        const testUserEmptyLastName: UserRegistrationBodyDto = {
+            ...testUser,
+            lastName: '',
+        };
+
+        const testUserInvalidEmail: UserRegistrationBodyDto = {
+            ...testUser,
+            email: 'Hello',
+        };
+
+        const testUserTooShortPassword: UserRegistrationBodyDto = {
+            ...testUser,
+            password: 'password',
+        };
+
+        const testUserInvalidUserLevel: UserRegistrationBodyDto = {
+            ...testUser,
+            authLevel: 'SUPREME_ADMIRAL_COMMANDER',
+        };
+
+        const testUserNegativeCalories: UserRegistrationBodyDto = {
+            ...testUser,
+            targetCalories: -1,
+        };
+
+        it('Should generate admin account and login', async () => {
+            createdAdminUser = await userService.createNewUserWithPrivileges(adminUser);
+            adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+        });
+
+        it('Should generate user account and login', async () => {
+            createdRegularUser = await userService.createNewUserWithPrivileges(normalUser);
+            userLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
+        });
+
+        it('Should generate user manager account and login', async () => {
+            createdUserManager = await userService.createNewUserWithPrivileges(userManager);
+            userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
+        });
+
+        it('Should return 200 - create a new user', async () => {
 
             const response = await request(app.getHttpServer())
                 .post('/api/users')
                 .send(testUser)
                 .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${admin_token}`)
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
                 .expect('Content-Type', /json/)
-                .expect(201);
+                .expect(HttpStatus.CREATED);
 
             const createdNewUser = response.body;
 
@@ -93,210 +148,379 @@ describe('UserController (e2e)', () => {
             expect(createdNewUser.authLevel).toEqual('USER');
         });
 
-        test.todo("ERROR 400")
-        test.todo("ERROR 401")
-        test.todo("ERROR 403")
+        it('Should return 400 - Bad request because of the empty first name', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUserEmptyFirstName)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('firstName');
+        });
+
+        it('Should return 400 - Bad request because of the empty last name', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUserEmptyLastName)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('lastName');
+        });
+
+        it('Should return 400 - Bad request because of the "email" not being an email', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUserInvalidEmail)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('email');
+        });
+
+        it('Should return 400 - Bad request because of the password being shorter than 12 chars', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUserTooShortPassword)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('password');
+        });
+
+        it('Should return 400 - Bad request because of the invalid authorization level', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUserInvalidUserLevel)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('authLevel');
+        });
+
+        it('Should return 400 - Bad request because of the negative calories number', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUserNegativeCalories)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('targetCalories');
+        });
+
+        it('Should return 400 - Bad request because of the negative calories number', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUserNegativeCalories)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('targetCalories');
+        });
+
+        it('Should return 401 - Unauthorized because there is no JWT', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUser)
+                .set('Accept', 'application/json')
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.UNAUTHORIZED);
+
+        });
+
+        it('Should return 401 - Unauthorized because the provided JWT is invalid', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUser)
+                .set('Accept', 'application/json')
+                .set('Authorization', 'Bearer TheQuickBrownFoxJumpsOverTheLazyDog')
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.UNAUTHORIZED);
+
+        });
+
+        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER in [ADMIN]', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUser)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${userLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.FORBIDDEN);
+
+        });
+
+        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER_MANAGER in [ADMIN]', async () => {
+
+            const response = await request(app.getHttpServer())
+                .post('/api/users')
+                .send(testUser)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${userManagerLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.FORBIDDEN);
+
+        });
 
     });
 
-    // describe('createNewUserWithPrivileges', () => {
+    describe('/api/users/ (GET)', () => {
 
-    //     const testUser: UserRegistrationBodyDto = {
-    //         firstName: 'TestFirstName',
-    //         lastName: 'TestLastName',
-    //         email: 'test2@test.test',
-    //         password: 'password123',
-    //         authLevel: 'ADMIN',
-    //     };
+        let createdAdminUser;
+        let adminLogin;
 
-    //     it('Should create a new user respecting the authLevel', async () => {
-    //         const createNewUser = await userService.createNewUserWithPrivileges(testUser);
+        let createdRegularUser;
+        let userLogin;
 
-    //         expect(createNewUser._id).toBeTruthy();
-    //         expect(createNewUser.firstName).toEqual(testUser.firstName);
-    //         expect(createNewUser.lastName).toEqual(testUser.lastName);
-    //         expect(createNewUser.email).toEqual(testUser.email);
-    //         // @ts-ignore
-    //         expect(createNewUser.password).toBeUndefined();
-    //         expect(createNewUser.authLevel).toEqual(testUser.authLevel);
-    //     });
+        let createdUserManager;
+        let userManagerLogin;
 
-    // });
+        it('Should generate admin account and login', async () => {
+            createdAdminUser = await userService.createNewUserWithPrivileges(adminUser);
+            adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+        });
 
-    // describe('findAll', () => {
+        it('Should generate user account and login', async () => {
+            createdRegularUser = await userService.createNewUserWithPrivileges(normalUser);
+            userLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
+        });
 
-    //     const testUser: UserRegistrationBodyDto = {
-    //         firstName: 'TestFirstName1',
-    //         lastName: 'TestLastName1',
-    //         email: 'test3@test.test',
-    //         password: 'password123',
-    //         authLevel: 'ADMIN',
-    //     };
+        it('Should generate user manager account and login', async () => {
+            createdUserManager = await userService.createNewUserWithPrivileges(userManager);
+            userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
+        });
 
-    //     const testUserTwo: UserRegistrationBodyDto = {
-    //         firstName: 'TestFirstName2',
-    //         lastName: 'TestLastName2',
-    //         email: 'test4@test.test',
-    //         password: 'password123',
-    //         authLevel: 'USER',
-    //     };
+        it('Should return 200 - return all users minus passwords and meals', async () => {
 
-    //     const addedUsersArray = [testUser, testUserTwo];
+            const response = await request(app.getHttpServer())
+                .get('/api/users')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.OK);
 
-    //     it('Should return all users minus passwords and meals', async () => {
-    //         await userService.createNewUserWithPrivileges(testUser);
-    //         await userService.createNewUserWithPrivileges(testUserTwo);
-    //         const users = await userService.findAll();
+            const users = response.body;
 
-    //         for (const [index, testedUser] of [...users].entries()) {
+            const addedUsersArray = [adminUser, normalUser];
 
-    //             const addedUser = addedUsersArray[index];
-    //             expect(testedUser._id).toBeTruthy();
-    //             expect(testedUser.firstName).toEqual(addedUser.firstName);
-    //             expect(testedUser.lastName).toEqual(addedUser.lastName);
-    //             expect(testedUser.email).toEqual(addedUser.email);
-    //             expect(testedUser.authLevel).toEqual(addedUser.authLevel);
-    //             // @ts-ignore
-    //             expect(testedUser.password).toBeUndefined();
-    //             // @ts-ignore
-    //             expect(testedUser.meals).toBeUndefined();
-    //         }
+            for (const [index, testedUser] of [...users].entries()) {
 
-    //     });
+                const addedUser = addedUsersArray[index];
+                expect(testedUser._id).toBeTruthy();
+                expect(testedUser.firstName).toEqual(addedUser.firstName);
+                expect(testedUser.lastName).toEqual(addedUser.lastName);
+                expect(testedUser.email).toEqual(addedUser.email);
+                expect(testedUser.authLevel).toEqual(addedUser.authLevel);
+                // @ts-ignore
+                expect(testedUser.password).toBeUndefined();
+                // @ts-ignore
+                expect(testedUser.meals).toBeUndefined();
+            }
+        });
 
-    // });
+        it('Should return 401 - Unauthorized because there is no JWT', async () => {
 
-    // describe('update', () => {
+            const response = await request(app.getHttpServer())
+                .get('/api/users')
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.UNAUTHORIZED);
 
-    //     const testUserRegisterBody: UserRegistrationBodyDto = {
-    //         firstName: 'TestFirstName1',
-    //         lastName: 'TestLastName1',
-    //         email: 'test3@test.test',
-    //         password: 'password123',
-    //         authLevel: 'ADMIN',
-    //     };
+        });
 
-    //     const testUser: User = {
-    //         firstName: 'ModifiedFirstName',
-    //         lastName: 'ModifiedFirstName',
-    //         email: 'NewEmail@test.test',
-    //         authLevel: 'USER',
-    //         _id: 'This does not matter',
-    //         targetCalories: 321,
-    //     };
+        it('Should return 401 - Unauthorized because the provided JWT is invalid', async () => {
 
-    //     it('Should update target user but email and authLevel', async () => {
-    //         const newUser = await userService.createNewUserWithPrivileges(testUserRegisterBody);
-    //         const updated = await userService.update(newUser._id, testUser);
-    //         const users = await userService.findAll();
+            const response = await request(app.getHttpServer())
+                .get('/api/users')
+                .set('Authorization', 'Bearer TheQuickBrownFoxJumpsOverTheLazyDog')
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.UNAUTHORIZED);
 
-    //         expect(updated.nModified).toEqual(1);
+        });
 
-    //         const modifiedUser = users[0];
+        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER in [ADMIN, USER_MANAGER]', async () => {
 
-    //         expect(modifiedUser._id).toEqual(newUser._id);
-    //         expect(modifiedUser.firstName).toEqual(testUser.firstName);
-    //         expect(modifiedUser.lastName).toEqual(testUser.lastName);
-    //         expect(modifiedUser.email).toEqual(testUserRegisterBody.email);
-    //         expect(modifiedUser.authLevel).toEqual(testUserRegisterBody.authLevel);
+            const response = await request(app.getHttpServer())
+                .get('/api/users')
+                .set('Authorization', `Bearer ${userLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.FORBIDDEN);
 
-    //     });
+        });
 
-    // });
+    });
 
-    // describe('updateWithPrivileges', () => {
+    describe('/api/users/{userId} (PUT)', () => {
 
-    //     const testUserRegisterBody: UserRegistrationBodyDto = {
-    //         firstName: 'TestFirstName1',
-    //         lastName: 'TestLastName1',
-    //         email: 'test3@test.test',
-    //         password: 'password123',
-    //         authLevel: 'ADMIN',
-    //     };
+        let createdAdminUser;
+        let adminLogin;
 
-    //     const testUser: User = {
-    //         firstName: 'ModifiedFirstName',
-    //         lastName: 'ModifiedFirstName',
-    //         email: 'NewEmail@test.test',
-    //         authLevel: 'USER',
-    //         _id: 'This does not matter',
-    //         targetCalories: 321,
-    //     };
+        let createdRegularUser;
+        let userLogin;
 
-    //     it('Should update target user but email', async () => {
-    //         const newUser = await userService.createNewUserWithPrivileges(testUserRegisterBody);
-    //         const updated = await userService.updateWithPrivileges(newUser._id, testUser);
-    //         const users = await userService.findAll();
+        let createdUserManager;
+        let userManagerLogin;
 
-    //         expect(updated.nModified).toEqual(1);
+        it('Should generate admin account and login', async () => {
+            createdAdminUser = await userService.createNewUserWithPrivileges(adminUser);
+            adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+        });
 
-    //         const modifiedUser = users[0];
+        it('Should generate user account and login', async () => {
+            createdRegularUser = await userService.createNewUserWithPrivileges(normalUser);
+            userLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
+        });
 
-    //         expect(modifiedUser._id).toEqual(newUser._id);
-    //         expect(modifiedUser.firstName).toEqual(testUser.firstName);
-    //         expect(modifiedUser.lastName).toEqual(testUser.lastName);
-    //         expect(modifiedUser.email).toEqual(testUserRegisterBody.email);
-    //         expect(modifiedUser.authLevel).toEqual(testUser.authLevel);
+        it('Should generate user manager account and login', async () => {
+            createdUserManager = await userService.createNewUserWithPrivileges(userManager);
+            userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
+        });
 
-    //     });
+        it('Should update target user but email and authLevel', async () => {
 
-    // });
+            console.log("HELLO", createdRegularUser)
 
-    // describe('delete', () => {
+            const testUserPutBody: User = {
+                _id: createdRegularUser._id,
+                firstName: 'newUserFirstName2',
+                lastName: 'newUserLastName2',
+                email: 'newUser@caloriesTracker.com',
+                authLevel: 'USER_MANAGER',
+                targetCalories: 900,
+            };
 
-    //     const testUser: UserRegistrationBodyDto = {
-    //         firstName: 'TestFirstName1',
-    //         lastName: 'TestLastName1',
-    //         email: 'test3@test.test',
-    //         password: 'password123',
-    //         authLevel: 'ADMIN',
-    //     };
+            const response = await request(app.getHttpServer())
+                .put(`/api/users/${createdRegularUser._id}`)
+                .send(testUserPutBody)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${userLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.OK);
 
-    //     const testUserTwo: UserRegistrationBodyDto = {
-    //         firstName: 'TestFirstName2',
-    //         lastName: 'TestLastName2',
-    //         email: 'test4@test.test',
-    //         password: 'password123',
-    //         authLevel: 'USER',
-    //     };
+            console.log('THIS IS THE RESPONSE', response.body);
+            // expect(response.body.nModified).toEqual(1);
 
-    //     it('Should delete the target user', async () => {
-    //         const userOne = await userService.createNewUserWithPrivileges(testUser);
-    //         const userTwo = await userService.createNewUserWithPrivileges(testUserTwo);
-    //         const users = await userService.findAll();
-    //         const updated = await userService.delete(userOne._id);
-    //         const usersAfterDelete = await userService.findAll();
+            const updatedUser = await userService.findUser(createdRegularUser._id);
 
-    //         expect(users.length).toEqual(2);
-    //         expect(usersAfterDelete.length).toEqual(1);
-    //         expect(updated.deletedCount).toEqual(1);
+            expect(updatedUser._id).toEqual(createdRegularUser._id);
+            expect(updatedUser.firstName).toEqual(testUserPutBody.firstName);
+            expect(updatedUser.lastName).toEqual(testUserPutBody.lastName);
+            expect(updatedUser.email).toEqual(createdRegularUser.email);
+            expect(updatedUser.authLevel).toEqual(createdRegularUser.authLevel);
 
-    //         const remainingUser = usersAfterDelete[0];
-    //         expect(remainingUser._id).toEqual(userTwo._id);
+        });
 
-    //     });
+        it('Should update target user but email', async () => {
 
-    // });
+            const testUserPutBody: User = {
+                _id: createdRegularUser._id,
+                firstName: 'anotherFirstName3',
+                lastName: 'anotherLastName3',
+                email: 'newUser@caloriesTracker.com',
+                authLevel: 'USER_MANAGER',
+                targetCalories: 700,
+            };
 
-    // describe('findUser', () => {
+            const response = await request(app.getHttpServer())
+                .put(`/api/users/${createdRegularUser._id}`)
+                .send(testUserPutBody)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.OK);
 
-    //     const testUser: UserRegistrationBodyDto = {
-    //         firstName: 'TestFirstName1',
-    //         lastName: 'TestLastName1',
-    //         email: 'test3@test.test',
-    //         password: 'password123',
-    //         authLevel: 'ADMIN',
-    //     };
+            // expect(response.body.nModified).toEqual(1);
 
-    //     it('Should get the target user', async () => {
-    //         const userOne = await userService.createNewUserWithPrivileges(testUser);
-    //         const foundUser = await userService.findUser(userOne._id);
+            const updatedUser = await userService.findUser(createdRegularUser._id);
 
-    //         expect(foundUser[0]._id).toEqual(userOne._id);
-    //         expect(foundUser[0].authLevel).toEqual(testUser.authLevel);
-    //         expect(foundUser[0].firstName).toEqual(testUser.firstName);
-    //         expect(foundUser[0].lastName).toEqual(testUser.lastName);
-    //         expect(foundUser[0].email).toEqual(testUser.email);
-    //     });
-    // });
+            expect(updatedUser._id).toEqual(createdRegularUser._id);
+            expect(updatedUser.firstName).toEqual(testUserPutBody.firstName);
+            expect(updatedUser.lastName).toEqual(testUserPutBody.lastName);
+            expect(updatedUser.email).toEqual(createdRegularUser.email);
+            expect(updatedUser.authLevel).toEqual(testUserPutBody.authLevel);
+
+        });
+
+        test.todo('401, 403, not self');
+
+    });
+
+    describe('/api/users/{userId} (DELETE)', () => {
+
+        it('Should delete the target user', async () => {
+
+            const createdAdminUser = await userService.createNewUserWithPrivileges(adminUser);
+            const adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+
+            const testUser: UserRegistrationBodyDto = {
+                firstName: 'TestFirstName',
+                lastName: 'TestLastName',
+                email: 'testUser@caloriesTracker.com',
+                password: '123123123123',
+                authLevel: 'USER',
+            };
+
+            const createdTestUser = await userService.createNewUserWithPrivileges(testUser);
+            const testLogin = await guestController.login({ email: testUser.email, password: testUser.password });
+
+            const response = await request(app.getHttpServer())
+                .delete(`/api/users/${createdTestUser._id}`)
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.OK);
+
+            expect(response.body.deletedCount).toEqual(1);
+
+            const findUserResult = await userService.findUser(createdTestUser._id);
+
+            expect(findUserResult).toBeUndefined();
+
+        });
+
+    });
+
+    describe('/api/users/{userId} (GET)', () => {
+
+        it('Should get the target user', async () => {
+
+            const createdAdminUser = await userService.createNewUserWithPrivileges(adminUser);
+
+            const adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+
+            const response = await request(app.getHttpServer())
+                .get(`/api/users/${createdAdminUser._id}`)
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.OK);
+
+            const foundUser = response.body;
+
+            expect(foundUser.authLevel).toEqual(createdAdminUser.authLevel);
+            expect(foundUser.firstName).toEqual(createdAdminUser.firstName);
+            expect(foundUser.lastName).toEqual(createdAdminUser.lastName);
+            expect(foundUser.email).toEqual(createdAdminUser.email);
+        });
+    });
 });

@@ -24,6 +24,8 @@ export class UserController {
     @Post()
     @ApiOperation({ summary: CREATE_USER_ADMIN })
     @ApiResponse({ status: 400, description: BAD_REQUEST })
+    @ApiResponse({ status: 401, description: JWT_NOT_VALID })
+    @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
     @Roles(ADMIN)
     async createUser(@Body() user: UserRegistrationBodyDto): Promise<User> {
         return await this.userService.createNewUserWithPrivileges(user);

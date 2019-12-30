@@ -12,7 +12,7 @@ import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
 import { adminUser, normalUser, userManager } from './user-static';
 
-describe('UserController (e2e)', () => {
+describe('UserController (e2e) - POST', () => {
     let app;
     let guestController: GuestController;
     let userService: UserService;

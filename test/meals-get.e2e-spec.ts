@@ -5,23 +5,26 @@ import * as request from 'supertest';
 import { AuthModule } from '../src/auth/auth.module';
 import dbTestModule from '../src/db-test/db-test.module';
 import { GuestController } from '../src/users/guest.controller';
-import { UserRegistrationBodyDto } from '../src/users/models/user-registration-body.model';
 import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
 import { adminUser, normalUser, userManager } from './user-static';
+import { MealsSchema } from '../src/meals/meals.schema';
+import { MealsService } from '../src/meals/meals.service';
+import { mealBodyOne, mealBodyTwo } from './meals-static';
 
-describe('UserController (e2e) - DELETE', () => {
+describe('MealsController (e2e) - GET', () => {
     let app;
     let guestController: GuestController;
     let userService: UserService;
     let module: TestingModule;
+    let mealService: MealsService;
 
     beforeEach(async () => {
         module = await Test.createTestingModule({
             imports: [
                 dbTestModule(),
-                MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+                MongooseModule.forFeature([{ name: 'User', schema: UserSchema }, { name: 'Meal', schema: MealsSchema }]),
                 AuthModule,
             ],
             controllers: [UserController, GuestController],
@@ -30,13 +33,15 @@ describe('UserController (e2e) - DELETE', () => {
 
         userService = module.get<UserService>(UserService);
         guestController = module.get<GuestController>(GuestController);
+        mealService = module.get<MealsService>(MealsService);
 
         app = module.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
         await app.init();
+
     });
 
-    describe('/api/users/{userId} (DELETE)', () => {
+    describe('/api/users/ (GET)', () => {
 
         let adminLogin;
         let userLogin;
@@ -57,58 +62,39 @@ describe('UserController (e2e) - DELETE', () => {
             userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
         });
 
-        it('Should delete the target user', async () => {
+        it('Should return 200 - return user meals as ADMIN', async () => {
 
-            await userService.createNewUserWithPrivileges(adminUser);
-
-            const testUser: UserRegistrationBodyDto = {
-                firstName: 'TestFirstName',
-                lastName: 'TestLastName',
-                email: 'testUser@caloriesTracker.com',
-                password: '123123123123',
-                authLevel: 'USER',
-            };
-
-            const createdTestUser = await userService.createNewUserWithPrivileges(testUser);
+            const createdUser = await userService.createNewUserWithPrivileges(normalUser);
+            mealService.addMeal(createdUser._id, mealBodyOne);
+            mealService.addMeal(createdUser._id, mealBodyTwo);
 
             const response = await request(app.getHttpServer())
-                .delete(`/api/users/${createdTestUser._id}`)
+                .get(`/api/users/${createdUser._id}/meals`)
                 .set('Authorization', `Bearer ${adminLogin.access_token}`)
                 .expect('Content-Type', /json/)
                 .expect(HttpStatus.OK);
 
-            expect(response.body.deletedCount).toEqual(1);
+            const meals = response.body;
 
-            const findUserResult = await userService.findUser(createdTestUser._id);
+            console.log('MEALS ', meals);
 
-            expect(findUserResult).toBeUndefined();
+            const addedUsersArray = [adminUser, normalUser];
+
+            for (const [index, testedUser] of [...meals].entries()) {
+
+                const addedUser = addedUsersArray[index];
+                expect(testedUser._id).toBeTruthy();
+                expect(testedUser.firstName).toEqual(addedUser.firstName);
+                expect(testedUser.lastName).toEqual(addedUser.lastName);
+                expect(testedUser.email).toEqual(addedUser.email);
+                expect(testedUser.authLevel).toEqual(addedUser.authLevel);
+                // @ts-ignore
+                expect(testedUser.password).toBeUndefined();
+                // @ts-ignore
+                expect(testedUser.meals).toBeUndefined();
+            }
         });
 
-        it('Should return 401 - Unauthorized because the provided JWT is invalid', async () => {
-
-            await request(app.getHttpServer())
-                .delete('/api/users/fakeUserId')
-                .set('Authorization', 'Bearer TheQuickBrownFoxJumpsOverTheLazyDog')
-                .expect('Content-Type', /json/)
-                .expect(HttpStatus.UNAUTHORIZED);
-        });
-
-        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER in [ADMIN]', async () => {
-
-            await request(app.getHttpServer())
-                .delete('/api/users/fakeUserID')
-                .set('Authorization', `Bearer ${userLogin.access_token}`)
-                .expect('Content-Type', /json/)
-                .expect(HttpStatus.FORBIDDEN);
-        });
-
-        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER_MANAGER in [ADMIN]', async () => {
-
-            await request(app.getHttpServer())
-                .delete('/api/users/fakeUserID')
-                .set('Authorization', `Bearer ${userManagerLogin.access_token}`)
-                .expect('Content-Type', /json/)
-                .expect(HttpStatus.FORBIDDEN);
-        });
     });
+
 });

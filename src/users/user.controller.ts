@@ -45,7 +45,7 @@ export class UserController {
     @Delete(':id')
     @ApiOperation({ summary: DELETE_USER })
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
-    @Roles(USER_MANAGER, ADMIN)
+    @Roles(ADMIN)
     async deleteUser(@Param() paramters): Promise<DbResponse> {
         return this.userService.delete(paramters.id);
     }

@@ -374,33 +374,29 @@ describe('UserController (e2e)', () => {
 
     describe('/api/users/{userId} (PUT)', () => {
 
-        let createdAdminUser;
         let adminLogin;
-
-        let createdRegularUser;
         let userLogin;
-
-        let createdUserManager;
         let userManagerLogin;
 
         it('Should generate admin account and login', async () => {
-            createdAdminUser = await userService.createNewUserWithPrivileges(adminUser);
+            await userService.createNewUserWithPrivileges(adminUser);
             adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
         });
 
         it('Should generate user account and login', async () => {
-            createdRegularUser = await userService.createNewUserWithPrivileges(normalUser);
+            await userService.createNewUserWithPrivileges(normalUser);
             userLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
         });
 
         it('Should generate user manager account and login', async () => {
-            createdUserManager = await userService.createNewUserWithPrivileges(userManager);
+            await userService.createNewUserWithPrivileges(userManager);
             userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
         });
 
         it('Should update target user but email and authLevel', async () => {
 
-            console.log("HELLO", createdRegularUser)
+            const createdRegularUser = await userService.createNewUserWithPrivileges(normalUser);
+            const createdUserLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
 
             const testUserPutBody: User = {
                 _id: createdRegularUser._id,
@@ -415,12 +411,11 @@ describe('UserController (e2e)', () => {
                 .put(`/api/users/${createdRegularUser._id}`)
                 .send(testUserPutBody)
                 .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${userLogin.access_token}`)
+                .set('Authorization', `Bearer ${createdUserLogin.access_token}`)
                 .expect('Content-Type', /json/)
                 .expect(HttpStatus.OK);
 
-            console.log('THIS IS THE RESPONSE', response.body);
-            // expect(response.body.nModified).toEqual(1);
+            expect(response.body.nModified).toEqual(1);
 
             const updatedUser = await userService.findUser(createdRegularUser._id);
 
@@ -433,6 +428,8 @@ describe('UserController (e2e)', () => {
         });
 
         it('Should update target user but email', async () => {
+
+            const createdRegularUser = await userService.createNewUserWithPrivileges(normalUser);
 
             const testUserPutBody: User = {
                 _id: createdRegularUser._id,
@@ -451,7 +448,7 @@ describe('UserController (e2e)', () => {
                 .expect('Content-Type', /json/)
                 .expect(HttpStatus.OK);
 
-            // expect(response.body.nModified).toEqual(1);
+            expect(response.body.nModified).toEqual(1);
 
             const updatedUser = await userService.findUser(createdRegularUser._id);
 
@@ -463,16 +460,62 @@ describe('UserController (e2e)', () => {
 
         });
 
-        test.todo('401, 403, not self');
+        it('Should return 401 - Unauthorized because the provided JWT is invalid', async () => {
+
+            const response = await request(app.getHttpServer())
+                .put('/api/users/userIdHere')
+                .set('Authorization', 'Bearer TheQuickBrownFoxJumpsOverTheLazyDog')
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.UNAUTHORIZED);
+
+        });
+
+        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER_MANAGER in [SELF, ADMIN]', async () => {
+
+            const response = await request(app.getHttpServer())
+                .put('/api/users/userIdHere')
+                .set('Authorization', `Bearer ${userManagerLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.FORBIDDEN);
+
+        });
+
+        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER (NOT SELF) in [SELF, ADMIN]', async () => {
+
+            const response = await request(app.getHttpServer())
+                .put('/api/users/userIdHere')
+                .set('Authorization', `Bearer ${userLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.FORBIDDEN);
+
+        });
 
     });
 
     describe('/api/users/{userId} (DELETE)', () => {
 
+        let adminLogin;
+        let userLogin;
+        let userManagerLogin;
+
+        it('Should generate admin account and login', async () => {
+            await userService.createNewUserWithPrivileges(adminUser);
+            adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+        });
+
+        it('Should generate user account and login', async () => {
+            await userService.createNewUserWithPrivileges(normalUser);
+            userLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
+        });
+
+        it('Should generate user manager account and login', async () => {
+            await userService.createNewUserWithPrivileges(userManager);
+            userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
+        });
+
         it('Should delete the target user', async () => {
 
-            const createdAdminUser = await userService.createNewUserWithPrivileges(adminUser);
-            const adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+            await userService.createNewUserWithPrivileges(adminUser);
 
             const testUser: UserRegistrationBodyDto = {
                 firstName: 'TestFirstName',
@@ -499,28 +542,115 @@ describe('UserController (e2e)', () => {
 
         });
 
+        it('Should return 401 - Unauthorized because the provided JWT is invalid', async () => {
+
+            const response = await request(app.getHttpServer())
+                .delete('/api/users/fakeUserId')
+                .set('Authorization', 'Bearer TheQuickBrownFoxJumpsOverTheLazyDog')
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.UNAUTHORIZED);
+
+        });
+
+        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER in [ADMIN]', async () => {
+
+            const response = await request(app.getHttpServer())
+                .delete('/api/users/fakeUserID')
+                .set('Authorization', `Bearer ${userLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.FORBIDDEN);
+
+        });
+
+        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER_MANAGER in [ADMIN]', async () => {
+
+            const response = await request(app.getHttpServer())
+                .delete('/api/users/fakeUserID')
+                .set('Authorization', `Bearer ${userManagerLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.FORBIDDEN);
+
+        });
+
     });
 
     describe('/api/users/{userId} (GET)', () => {
 
-        it('Should get the target user', async () => {
+        let adminLogin;
+        let userLogin;
+        let userManagerLogin;
 
-            const createdAdminUser = await userService.createNewUserWithPrivileges(adminUser);
+        it('Should generate admin account and login', async () => {
+            await userService.createNewUserWithPrivileges(adminUser);
+            adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+        });
 
-            const adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+        it('Should generate user account and login', async () => {
+            await userService.createNewUserWithPrivileges(normalUser);
+            userLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
+        });
+
+        it('Should generate user manager account and login', async () => {
+            await userService.createNewUserWithPrivileges(userManager);
+            userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
+        });
+
+        it('Should get the target user as ADMIN', async () => {
+
+            const createdUser = await userService.createNewUserWithPrivileges(normalUser);
 
             const response = await request(app.getHttpServer())
-                .get(`/api/users/${createdAdminUser._id}`)
+                .get(`/api/users/${createdUser._id}`)
                 .set('Authorization', `Bearer ${adminLogin.access_token}`)
                 .expect('Content-Type', /json/)
                 .expect(HttpStatus.OK);
 
             const foundUser = response.body;
 
-            expect(foundUser.authLevel).toEqual(createdAdminUser.authLevel);
-            expect(foundUser.firstName).toEqual(createdAdminUser.firstName);
-            expect(foundUser.lastName).toEqual(createdAdminUser.lastName);
-            expect(foundUser.email).toEqual(createdAdminUser.email);
+            expect(foundUser.authLevel).toEqual(createdUser.authLevel);
+            expect(foundUser.firstName).toEqual(createdUser.firstName);
+            expect(foundUser.lastName).toEqual(createdUser.lastName);
+            expect(foundUser.email).toEqual(createdUser.email);
         });
+
+        it('Should get the target user as USER_MANAGER', async () => {
+
+            const createdUser = await userService.createNewUserWithPrivileges(normalUser);
+
+            const response = await request(app.getHttpServer())
+                .get(`/api/users/${createdUser._id}`)
+                .set('Authorization', `Bearer ${userManagerLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.OK);
+
+            const foundUser = response.body;
+
+            expect(foundUser.authLevel).toEqual(createdUser.authLevel);
+            expect(foundUser.firstName).toEqual(createdUser.firstName);
+            expect(foundUser.lastName).toEqual(createdUser.lastName);
+            expect(foundUser.email).toEqual(createdUser.email);
+        });
+
+        it('Should return 401 - Unauthorized because the provided JWT is invalid', async () => {
+
+            const response = await request(app.getHttpServer())
+                .delete('/api/users/fakeUserId')
+                .set('Authorization', 'Bearer TheQuickBrownFoxJumpsOverTheLazyDog')
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.UNAUTHORIZED);
+
+        });
+
+        it('Should return 403 - Forbidden because the requester has no access to this endpoint USER in [USER_MANAGER, ADMIN]', async () => {
+
+            const response = await request(app.getHttpServer())
+                .delete('/api/users/fakeUserID')
+                .set('Authorization', `Bearer ${userLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.FORBIDDEN);
+        });
+
     });
+
+
 });

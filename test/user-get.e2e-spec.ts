@@ -9,8 +9,9 @@ import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
 import { adminUser, normalUser, userManager } from './user-static';
+import { MealsController } from 'src/meals/meals.controller';
 
-describe('UserController (e2e)', () => {
+describe('UserController (e2e) - GET', () => {
     let app;
     let guestController: GuestController;
     let userService: UserService;
@@ -23,7 +24,7 @@ describe('UserController (e2e)', () => {
                 MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
                 AuthModule,
             ],
-            controllers: [UserController, GuestController],
+            controllers: [GuestController, MealsController],
             providers: [UserService],
         }).compile();
 

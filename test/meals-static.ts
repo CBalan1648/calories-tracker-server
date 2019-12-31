@@ -1,5 +1,11 @@
 import { Meal } from '../src/meals/models/meals.model';
 
+export const fakeUserId = '507f1f77bcf86cd799439011';
+
+export const notValidUserId = "123"
+
+export const fakeJWT = "AAAABBBBCCCC"
+
 export const mealBodyOne: Meal = {
     title: 'mealTitle',
     description: 'mealDescription',

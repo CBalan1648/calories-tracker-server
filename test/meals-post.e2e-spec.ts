@@ -41,7 +41,7 @@ describe('MealsController (e2e) - GET', () => {
 
     });
 
-    describe('/api/users/{USER-ID}/meals (GET)', () => {
+    describe('/api/users/{USER-ID}/meals (POST)', () => {
 
         let adminLogin;
         let userLogin;
@@ -62,94 +62,29 @@ describe('MealsController (e2e) - GET', () => {
             userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
         });
 
-        it('Should return 200 - return user meals as ADMIN', async () => {
+        it('Should return 200 - return the posted meal as ADMIN', async () => {
 
             const createdUser = await userService.createNewUserWithPrivileges(normalUser);
-            mealService.addMeal(createdUser._id, mealBodyOne);
-            mealService.addMeal(createdUser._id, mealBodyTwo);
 
             const response = await request(app.getHttpServer())
-                .get(`/api/users/${createdUser._id}/meals`)
+                .post(`/api/users/${createdUser._id}/meals`)
+                .send(mealBodyOne)
                 .set('Authorization', `Bearer ${adminLogin.access_token}`)
                 .expect('Content-Type', /json/)
-                .expect(HttpStatus.OK);
+                .expect(HttpStatus.CREATED);
 
-            expect(response.body.meals).toBeTruthy();
+            expect(response.body).toBeTruthy();
 
-            const returnedMeals = response.body.meals;
+            const returnedMeal = response.body;
 
-            const addedMealsArray = [mealBodyOne, mealBodyTwo];
-
-            for (const [index, testedMeal] of [...returnedMeals].entries()) {
-
-                const addedUser = addedMealsArray[index];
-                expect(testedMeal._id).toBeTruthy();
-                expect(testedMeal.title).toEqual(addedUser.title);
-                expect(testedMeal.description).toEqual(addedUser.description);
-                expect(testedMeal.time).toEqual(addedUser.time);
-                expect(testedMeal.calories).toEqual(addedUser.calories);
-            }
+            expect(returnedMeal._id).toBeTruthy();
+            expect(returnedMeal.title).toEqual(mealBodyOne.title);
+            expect(returnedMeal.description).toEqual(mealBodyOne.description);
+            expect(returnedMeal.time).toEqual(mealBodyOne.time);
+            expect(returnedMeal.calories).toEqual(mealBodyOne.calories);
         });
 
-        it('Should return 200 - return user meals as USERMANAGER', async () => {
-
-            const createdUser = await userService.createNewUserWithPrivileges(normalUser);
-            mealService.addMeal(createdUser._id, mealBodyOne);
-            mealService.addMeal(createdUser._id, mealBodyTwo);
-
-            const response = await request(app.getHttpServer())
-                .get(`/api/users/${createdUser._id}/meals`)
-                .set('Authorization', `Bearer ${userManagerLogin.access_token}`)
-                .expect('Content-Type', /json/)
-                .expect(HttpStatus.OK);
-
-            expect(response.body.meals).toBeTruthy();
-
-            const returnedMeals = response.body.meals;
-
-            const addedMealsArray = [mealBodyOne, mealBodyTwo];
-
-            for (const [index, testedMeal] of [...returnedMeals].entries()) {
-
-                const addedUser = addedMealsArray[index];
-                expect(testedMeal._id).toBeTruthy();
-                expect(testedMeal.title).toEqual(addedUser.title);
-                expect(testedMeal.description).toEqual(addedUser.description);
-                expect(testedMeal.time).toEqual(addedUser.time);
-                expect(testedMeal.calories).toEqual(addedUser.calories);
-            }
-        });
-
-        it('Should return 200 - return user meals as SELF', async () => {
-
-            const createdUser = await userService.createNewUserWithPrivileges(normalUser);
-            const createdUserLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
-            mealService.addMeal(createdUser._id, mealBodyOne);
-            mealService.addMeal(createdUser._id, mealBodyTwo);
-
-            const response = await request(app.getHttpServer())
-                .get(`/api/users/${createdUser._id}/meals`)
-                .set('Authorization', `Bearer ${createdUserLogin.access_token}`)
-                .expect('Content-Type', /json/)
-                .expect(HttpStatus.OK);
-
-            expect(response.body.meals).toBeTruthy();
-
-            const returnedMeals = response.body.meals;
-
-            const addedMealsArray = [mealBodyOne, mealBodyTwo];
-
-            for (const [index, testedMeal] of [...returnedMeals].entries()) {
-
-                const addedUser = addedMealsArray[index];
-                expect(testedMeal._id).toBeTruthy();
-                expect(testedMeal.title).toEqual(addedUser.title);
-                expect(testedMeal.description).toEqual(addedUser.description);
-                expect(testedMeal.time).toEqual(addedUser.time);
-                expect(testedMeal.calories).toEqual(addedUser.calories);
-            }
-        });
-
+      
         it('Should return 401 - Unauthorized because there is no JWT', async () => {
 
             await request(app.getHttpServer())

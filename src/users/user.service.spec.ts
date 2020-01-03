@@ -119,7 +119,6 @@ describe('UserService', () => {
             expect(returnedUser.passWord).toBeUndefined();
 
         });
-
     });
 
     describe('findAll', () => {
@@ -160,7 +159,6 @@ describe('UserService', () => {
             expect(returnedUsers[0]).toEqual(userOne);
             expect(returnedUsers[1]).toEqual(userTwo);
         });
-
     });
 
     describe('update', () => {
@@ -203,7 +201,6 @@ describe('UserService', () => {
             expect(callParameterTwo.$set.targetCalories).toEqual(updateUser.targetCalories);
 
         });
-
     });
 
     describe('updateWithPrivileges', () => {
@@ -247,7 +244,6 @@ describe('UserService', () => {
             expect(callParameterTwo.$set.authLevel).toEqual(updateUser.authLevel);
 
         });
-
     });
 
     describe('delete', () => {
@@ -275,7 +271,6 @@ describe('UserService', () => {
             expect(mockedDelete).toHaveBeenCalled();
             expect(callParameterOne._id).toEqual(providedId);
         });
-
     });
 
     describe('findUser', () => {
@@ -283,6 +278,8 @@ describe('UserService', () => {
         it('Should call the userModel.find with the user id', async () => {
 
             const providedId = 'ThisIsAUserId';
+
+            const firstResult = {user : 'USER'};
 
             let callParameterOne;
 
@@ -293,13 +290,14 @@ describe('UserService', () => {
                     find: (parameterOne) => {
                         mockedFind();
                         callParameterOne = parameterOne;
-
+                        return [firstResult];
                     },
                 },
             };
 
-            await userService.findUser.call(mockEnvironment, providedId);
+            const returnedValue = await userService.findUser.call(mockEnvironment, providedId);
 
+            expect(returnedValue).toEqual(firstResult);
             expect(mockedFind).toHaveBeenCalled();
             expect(callParameterOne._id).toEqual(providedId);
         });

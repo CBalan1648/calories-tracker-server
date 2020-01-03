@@ -8,5 +8,4 @@ export class Parameters {
     @IsMongoId()
     @ValidateIf(pararameters => !!pararameters.mealId)
     mealId: string;
-
 }

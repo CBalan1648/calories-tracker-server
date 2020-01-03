@@ -1,11 +1,12 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from '../src/users/user.controller';
+import { LoginJwt } from 'src/auth/models/login-jwt.model';
 import * as request from 'supertest';
 import { AuthModule } from '../src/auth/auth.module';
 import dbTestModule from '../src/db-test/db-test.module';
 import { GuestController } from '../src/users/guest.controller';
+import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
 import { adminUser, normalUser, userManager } from './user-static';
@@ -38,9 +39,9 @@ describe('UserController (e2e) - GET', () => {
 
     describe('/api/users/ (GET)', () => {
 
-        let adminLogin;
-        let userLogin;
-        let userManagerLogin;
+        let adminLogin: LoginJwt;
+        let userLogin: LoginJwt;
+        let userManagerLogin: LoginJwt;
 
         it('Should generate admin account and login', async () => {
             await userService.createNewUserWithPrivileges(adminUser);

@@ -18,23 +18,39 @@ export class MealsService {
             },
         }, { new: true, fields: { meals: { $slice: -1 } } });
 
+        if (updatedUserCursor === null) {
+            throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
+        }
+
         return updatedUserCursor.meals[0];
     }
 
     async updateMeal(userId: string, mealId: string, meal: Meal): Promise<DbResponse> {
-        return await this.userModel.updateOne({ '_id': userId, 'meals._id': mealId }, {
+
+        const { description, title, time, calories } = meal;
+
+        const response = await this.userModel.updateOne({ '_id': userId, 'meals._id': mealId }, {
             $set: {
-                'meals.$': meal,
+                'meals.$.description': description,
+                'meals.$.title': title,
+                'meals.$.time': time,
+                'meals.$.calories': calories,
             },
         });
-    }
 
-    async getMeals(userId: string): Promise<Meal[]> {
-        const userMeals = await this.userModel.findOne({ _id: userId }, { meals: 1 }, { omitUndefined: true });
-        if(userMeals === null){
+        if (response.n === 0) {
             throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
         }
-        return userMeals
+
+        return response;
+    }
+
+    async getMeals(userId: string): Promise<{ _id: string, meals: Meal[] }> {
+        const userMeals = await this.userModel.findOne({ _id: userId }, { meals: 1 }, { omitUndefined: true });
+        if (userMeals === null) {
+            throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
+        }
+        return userMeals;
     }
 
     async deleteMeal(userId: string, mealId: string): Promise<DbResponse> {

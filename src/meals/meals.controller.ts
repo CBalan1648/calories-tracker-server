@@ -8,7 +8,7 @@ import { Roles } from '../helpers/userLevel.decorator';
 import { UserLevelGuard } from '../helpers/userLevel.guard';
 import { MealsService } from './meals.service';
 import { Meal } from './models/meals.model';
-import { Parameters } from './models/parameters.models';
+import { Parameters } from '../helpers/parameters.models';
 
 @UseGuards(AuthGuard('jwt'), UserLevelGuard)
 @ApiTags('Meals')

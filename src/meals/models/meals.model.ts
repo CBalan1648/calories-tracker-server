@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsMongoId, IsNotEmpty, IsNumber, ValidateIf, IsString } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsNumber, IsString, ValidateIf } from 'class-validator';
 
 export class Meal {
     @ApiPropertyOptional()

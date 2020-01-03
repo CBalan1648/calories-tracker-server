@@ -11,8 +11,7 @@ import { MealsService } from '../src/meals/meals.service';
 import { GuestController } from '../src/users/guest.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { fakeJWT, fakeUserId, mealBodyOne, mealBodyTwo, notValidMongoId } from './meals-static';
-import { adminUser, normalUser, userManager } from './user-static';
+import { adminUser, fakeJWT, fakeUserId, mealBodyOne, mealBodyTwo, normalUser, notValidMongoId, userManager } from './static';
 
 describe('MealsController (e2e) - GET', () => {
     let app;
@@ -187,10 +186,12 @@ describe('MealsController (e2e) - GET', () => {
 
         it('Should return 400 - NotFound because the user id is not valid', async () => {
 
-            await request(app.getHttpServer())
+            const response = await request(app.getHttpServer())
                 .get(`/api/users/${notValidMongoId}/meals`)
                 .set('Authorization', `Bearer ${adminLogin.access_token}`)
                 .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('id');
         });
     });
 });

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, Length } from 'class-validator';
+import { IsEmail, IsNotEmpty, Length, IsString } from 'class-validator';
 
 // TODO extract to external file
 export const minimumPasswordLength = 12;
@@ -7,10 +7,12 @@ export const minimumPasswordLength = 12;
 export class UserAddNewBodyDto {
     @ApiProperty()
     @IsNotEmpty()
+    @IsString()
     firstName: string;
 
     @ApiProperty()
     @IsNotEmpty()
+    @IsString()
     lastName: string;
 
     @ApiProperty()

@@ -1,7 +1,7 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoginJwt } from 'src/auth/models/login-jwt.model';
+import { LoginJwt } from '../src/auth/models/login-jwt.model';
 import * as request from 'supertest';
 import { AuthModule } from '../src/auth/auth.module';
 import dbTestModule from '../src/db-test/db-test.module';
@@ -10,7 +10,7 @@ import { User } from '../src/users/models/user.model';
 import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { adminUser, normalUser, userManager } from './user-static';
+import { adminUser, fakeJWT, fakeUserId, normalUser, notValidMongoId, userManager } from './static';
 
 describe('UserController (e2e) - PUT', () => {
     let app;
@@ -129,8 +129,8 @@ describe('UserController (e2e) - PUT', () => {
         it('Should return 401 - Unauthorized because the provided JWT is invalid', async () => {
 
             await request(app.getHttpServer())
-                .put('/api/users/userIdHere')
-                .set('Authorization', 'Bearer TheQuickBrownFoxJumpsOverTheLazyDog')
+                .put(`/api/users/${fakeUserId}`)
+                .set('Authorization', `Bearer ${fakeJWT}`)
                 .expect('Content-Type', /json/)
                 .expect(HttpStatus.UNAUTHORIZED);
         });
@@ -138,7 +138,7 @@ describe('UserController (e2e) - PUT', () => {
         it('Should return 403 - Forbidden because the requester has no access to this endpoint USER_MANAGER in [SELF, ADMIN]', async () => {
 
             await request(app.getHttpServer())
-                .put('/api/users/userIdHere')
+                .put(`/api/users/${fakeUserId}`)
                 .set('Authorization', `Bearer ${userManagerLogin.access_token}`)
                 .expect('Content-Type', /json/)
                 .expect(HttpStatus.FORBIDDEN);
@@ -147,10 +147,24 @@ describe('UserController (e2e) - PUT', () => {
         it('Should return 403 - Forbidden because the requester has no access to this endpoint USER (NOT SELF) in [SELF, ADMIN]', async () => {
 
             await request(app.getHttpServer())
-                .put('/api/users/userIdHere')
+                .put(`/api/users/${fakeUserId}`)
                 .set('Authorization', `Bearer ${userLogin.access_token}`)
                 .expect('Content-Type', /json/)
                 .expect(HttpStatus.FORBIDDEN);
         });
+
+        it('Should return 400 - Not Found because the user id is not valid', async () => {
+
+            const response = await request(app.getHttpServer())
+                .put(`/api/users/${notValidMongoId}`)
+                .send(normalUser)
+                .set('Accept', 'application/json')
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('id');
+        });
+
     });
 });

@@ -2,10 +2,8 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Request, UseGuards } f
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DbResponse } from '../helpers/db-response.model';
-import {
-    BAD_REQUEST, CREATE_USER_ADMIN, DELETE_USER, GET_USER,
-    GET_USERS, INSUFFICIENT_PRIVILEGES, JWT_NOT_VALID, PUT_USER, USER_ID_DESCRIPTION,
-} from '../helpers/strings';
+import { Parameters } from '../helpers/parameters.models';
+import { BAD_REQUEST, CREATE_USER_ADMIN, DELETE_USER, GET_USER, GET_USERS, INSUFFICIENT_PRIVILEGES, JWT_NOT_VALID, PUT_USER, USER_ID_DESCRIPTION } from '../helpers/strings';
 import { ADMIN, SELF, USER, USER_MANAGER } from '../helpers/userLevel.constants';
 import { Roles } from '../helpers/userLevel.decorator';
 import { UserLevelGuard } from '../helpers/userLevel.guard';
@@ -40,23 +38,25 @@ export class UserController {
         return this.userService.findAll();
     }
 
+    @ApiResponse({ status: 400, description: BAD_REQUEST })
     @ApiResponse({ status: 401, description: JWT_NOT_VALID })
     @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
     @Delete(':id')
     @ApiOperation({ summary: DELETE_USER })
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
     @Roles(ADMIN)
-    async deleteUser(@Param() paramters): Promise<DbResponse> {
-        return this.userService.delete(paramters.id);
+    async deleteUser(@Param() parameters: Parameters): Promise<DbResponse> {
+        return this.userService.delete(parameters.id);
     }
 
+    @ApiResponse({ status: 400, description: BAD_REQUEST })
     @ApiResponse({ status: 401, description: JWT_NOT_VALID })
     @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
     @Put(':id')
     @ApiOperation({ summary: PUT_USER })
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
     @Roles(SELF, ADMIN)
-    async updateUser(@Request() request, @Body() body: User, @Param() parameters): Promise<DbResponse> {
+    async updateUser(@Request() request, @Body() body: User, @Param() parameters: Parameters): Promise<DbResponse> {
 
         if (request.user.authLevel === USER) {
             return this.userService.update(parameters.id, body);
@@ -65,13 +65,14 @@ export class UserController {
         }
     }
 
+    @ApiResponse({ status: 400, description: BAD_REQUEST })
     @ApiResponse({ status: 401, description: JWT_NOT_VALID })
     @ApiResponse({ status: 403, description: INSUFFICIENT_PRIVILEGES })
     @Get(':id')
     @ApiOperation({ summary: GET_USER })
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
     @Roles(USER_MANAGER, ADMIN)
-    async getUser(@Param() parameters) {
+    async getUser(@Param() parameters: Parameters) {
         return this.userService.findUser(parameters.id);
     }
 }

@@ -1,7 +1,7 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoginJwt } from 'src/auth/models/login-jwt.model';
+import { LoginJwt } from '../src/auth/models/login-jwt.model';
 import * as request from 'supertest';
 import { AuthModule } from '../src/auth/auth.module';
 import dbTestModule from '../src/db-test/db-test.module';
@@ -11,7 +11,7 @@ import { UserRegistrationBodyDto } from '../src/users/models/user-registration-b
 import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { adminUser, normalUser, userManager } from './user-static';
+import { adminUser, fakeJWT, normalUser, userManager } from './static';
 
 describe('UserController (e2e) - POST', () => {
     let app;
@@ -197,19 +197,6 @@ describe('UserController (e2e) - POST', () => {
             expect(response.body.message[0].property).toEqual('targetCalories');
         });
 
-        it('Should return 400 - Bad request because of the negative calories number', async () => {
-
-            const response = await request(app.getHttpServer())
-                .post('/api/users')
-                .send(testUserNegativeCalories)
-                .set('Accept', 'application/json')
-                .set('Authorization', `Bearer ${adminLogin.access_token}`)
-                .expect('Content-Type', /json/)
-                .expect(HttpStatus.BAD_REQUEST);
-
-            expect(response.body.message[0].property).toEqual('targetCalories');
-        });
-
         it('Should return 401 - Unauthorized because there is no JWT', async () => {
 
             await request(app.getHttpServer())
@@ -226,7 +213,7 @@ describe('UserController (e2e) - POST', () => {
                 .post('/api/users')
                 .send(testUser)
                 .set('Accept', 'application/json')
-                .set('Authorization', 'Bearer TheQuickBrownFoxJumpsOverTheLazyDog')
+                .set('Authorization', `Bearer ${fakeJWT}`)
                 .expect('Content-Type', /json/)
                 .expect(HttpStatus.UNAUTHORIZED);
         });

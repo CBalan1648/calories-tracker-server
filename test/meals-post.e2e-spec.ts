@@ -12,7 +12,7 @@ import { Meal } from '../src/meals/models/meals.model';
 import { GuestController } from '../src/users/guest.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { adminUser, fakeJWT, fakeUserId, mealBodyOne, normalUser, notValidMongoId, userManager } from './static';
+import { adminUser, adminUserLoginCredentials, fakeJWT, fakeUserId, mealBodyOne, normalUser, normalUserLoginCredentials, notValidMongoId, userManager, userManagerLoginCredentials } from './static';
 
 describe('MealsController (e2e) - POST', () => {
     let app;
@@ -50,17 +50,17 @@ describe('MealsController (e2e) - POST', () => {
 
         it('Should generate admin account and login', async () => {
             await userService.createNewUserWithPrivileges(adminUser);
-            adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+            adminLogin = await guestController.login(adminUserLoginCredentials);
         });
 
         it('Should generate user account and login', async () => {
             await userService.createNewUserWithPrivileges(normalUser);
-            userLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
+            userLogin = await guestController.login(normalUserLoginCredentials);
         });
 
         it('Should generate user manager account and login', async () => {
             await userService.createNewUserWithPrivileges(userManager);
-            userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
+            userManagerLogin = await guestController.login(userManagerLoginCredentials);
         });
 
         it('Should return 201 - return the posted meal as ADMIN', async () => {
@@ -108,7 +108,7 @@ describe('MealsController (e2e) - POST', () => {
         it('Should return 201 - return the posted meal as SELF', async () => {
 
             const createdUser = await userService.createNewUserWithPrivileges(normalUser);
-            const createdUserLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
+            const createdUserLogin = await guestController.login(normalUserLoginCredentials);
 
             const response = await request(app.getHttpServer())
                 .post(`/api/users/${createdUser._id}/meals`)

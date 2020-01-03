@@ -1,5 +1,6 @@
-import { UserRegistrationBodyDto } from '../src/users/models/user-registration-body.model';
+import { UserCredentialsDto } from 'src/users/models/user-credentials.model';
 import { Meal } from '../src/meals/models/meals.model';
+import { UserRegistrationBodyDto } from '../src/users/models/user-registration-body.model';
 
 export const fakeUserId = '507f1f77bcf86cd799439011';
 
@@ -45,4 +46,19 @@ export const userManager: UserRegistrationBodyDto = {
     email: 'userManager@caloriesTracker.com',
     password: '123123123123',
     authLevel: 'USER_MANAGER',
+};
+
+export const normalUserLoginCredentials: UserCredentialsDto = {
+    email: normalUser.email,
+    password: normalUser.password,
+};
+
+export const userManagerLoginCredentials: UserCredentialsDto = {
+    email: userManager.email,
+    password: userManager.password,
+};
+
+export const adminUserLoginCredentials: UserCredentialsDto = {
+    email: adminUser.email,
+    password: adminUser.password,
 };

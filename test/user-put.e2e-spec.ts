@@ -10,7 +10,7 @@ import { User } from '../src/users/models/user.model';
 import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { adminUser, fakeJWT, fakeUserId, normalUser, notValidMongoId, userManager } from './static';
+import { adminUser, fakeJWT, fakeUserId, normalUser, notValidMongoId, userManager, adminUserLoginCredentials, normalUserLoginCredentials, userManagerLoginCredentials } from './static';
 
 describe('UserController (e2e) - PUT', () => {
     let app;
@@ -46,23 +46,23 @@ describe('UserController (e2e) - PUT', () => {
 
         it('Should generate admin account and login', async () => {
             await userService.createNewUserWithPrivileges(adminUser);
-            adminLogin = await guestController.login({ email: adminUser.email, password: adminUser.password });
+            adminLogin = await guestController.login(adminUserLoginCredentials);
         });
 
         it('Should generate user account and login', async () => {
             await userService.createNewUserWithPrivileges(normalUser);
-            userLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
+            userLogin = await guestController.login(normalUserLoginCredentials);
         });
 
         it('Should generate user manager account and login', async () => {
             await userService.createNewUserWithPrivileges(userManager);
-            userManagerLogin = await guestController.login({ email: userManager.email, password: userManager.password });
+            userManagerLogin = await guestController.login(userManagerLoginCredentials);
         });
 
         it('Should update target user but email and authLevel', async () => {
 
             const createdRegularUser = await userService.createNewUserWithPrivileges(normalUser);
-            const createdUserLogin = await guestController.login({ email: normalUser.email, password: normalUser.password });
+            const createdUserLogin = await guestController.login(normalUserLoginCredentials);
 
             const testUserPutBody: User = {
                 _id: createdRegularUser._id,

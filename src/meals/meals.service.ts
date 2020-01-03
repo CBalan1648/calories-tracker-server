@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DbResponse } from '../helpers/db-response.model';
@@ -54,7 +54,11 @@ export class MealsService {
     }
 
     async deleteMeal(userId: string, mealId: string): Promise<DbResponse> {
-        return await this.userModel.update({ _id: userId }, { $pull: { meals: { _id: mealId } } });
+        const response = await this.userModel.update({ _id: userId }, { $pull: { meals: { _id: mealId } } });
+        if (response.n === 0) {
+            throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
+        }
+        return response;
     }
 
 }

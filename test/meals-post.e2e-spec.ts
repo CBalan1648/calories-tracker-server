@@ -1,18 +1,18 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoginJwt } from 'src/auth/models/login-jwt.model';
 import * as request from 'supertest';
 import { AuthModule } from '../src/auth/auth.module';
+import { LoginJwt } from '../src/auth/models/login-jwt.model';
 import dbTestModule from '../src/db-test/db-test.module';
 import { MealsController } from '../src/meals/meals.controller';
 import { MealsSchema } from '../src/meals/meals.schema';
 import { MealsService } from '../src/meals/meals.service';
+import { Meal } from '../src/meals/models/meals.model';
 import { GuestController } from '../src/users/guest.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { fakeJWT, fakeUserId, mealBodyOne, notValidMongoId } from './meals-static';
-import { adminUser, normalUser, userManager } from './user-static';
+import { adminUser, fakeJWT, fakeUserId, mealBodyOne, normalUser, notValidMongoId, userManager } from './static';
 
 describe('MealsController (e2e) - POST', () => {
     let app;
@@ -127,6 +127,86 @@ describe('MealsController (e2e) - POST', () => {
             expect(returnedMeal.calories).toEqual(mealBodyOne.calories);
         });
 
+        it('Should return 400 - Bad Request because of the missing title', async () => {
+
+            const mealBodyNoTitle: Meal = {
+                ...mealBodyOne,
+                title: '',
+            };
+
+            const response = await request(app.getHttpServer())
+                .post(`/api/users/${fakeUserId}/meals`)
+                .send(mealBodyNoTitle)
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('title');
+        });
+
+        it('Should return 400 - Bad Request because of the missing title', async () => {
+
+            const mealBodyNoTitle: Meal = {
+                ...mealBodyOne,
+                title: '',
+            };
+
+            const response = await request(app.getHttpServer())
+                .post(`/api/users/${fakeUserId}/meals`)
+                .send(mealBodyNoTitle)
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('title');
+        });
+
+        it('Should return 400 - Bad Request because of the missing calories', async () => {
+
+            const { calories, ...mealbodyNoCalories } = mealBodyOne;
+
+            const response = await request(app.getHttpServer())
+                .post(`/api/users/${fakeUserId}/meals`)
+                .send(mealbodyNoCalories)
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('calories');
+        });
+
+        it('Should return 400 - Bad Request because of the missing timestamp', async () => {
+
+            const { time, ...mealBodyNotTime } = mealBodyOne;
+
+            const response = await request(app.getHttpServer())
+                .post(`/api/users/${fakeUserId}/meals`)
+                .send(mealBodyNotTime)
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('time');
+        });
+
+        it('Should return 400 - Bad Request because of the wrong description type', async () => {
+
+            const mealBodyNoTitle: Meal = {
+                ...mealBodyOne,
+                // @ts-ignore
+                description: [],
+            };
+
+            const response = await request(app.getHttpServer())
+                .post(`/api/users/${fakeUserId}/meals`)
+                .send(mealBodyNoTitle)
+                .set('Authorization', `Bearer ${adminLogin.access_token}`)
+                .expect('Content-Type', /json/)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('description');
+        });
+
         it('Should return 401 - Unauthorized because there is no JWT', async () => {
 
             await request(app.getHttpServer())
@@ -167,11 +247,14 @@ describe('MealsController (e2e) - POST', () => {
 
         it('Should return 400 - Not Found because the user id is not valid', async () => {
 
-            await request(app.getHttpServer())
+            const response = await request(app.getHttpServer())
                 .post(`/api/users/${notValidMongoId}/meals`)
                 .send(mealBodyOne)
                 .set('Authorization', `Bearer ${adminLogin.access_token}`)
                 .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.message[0].property).toEqual('id');
         });
+
     });
 });

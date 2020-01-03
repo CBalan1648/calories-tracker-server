@@ -1,14 +1,15 @@
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
-import { MealsSchema } from '../meals/meals.schema';
+import { Parameters } from '../helpers/parameters.models';
 import { AuthModule } from '../auth/auth.module';
 import dbTestModule from '../db-test/db-test.module';
+import { DbResponse } from '../helpers/db-response.model';
+import { MealsSchema } from '../meals/meals.schema';
+import { UserRegistrationBodyDto } from './models/user-registration-body.model';
 import { User } from './models/user.model';
+import { UserController } from './user.controller';
 import { UserSchema } from './user.schema';
 import { UserService } from './user.service';
-import { UserController } from './user.controller';
-import { DbResponse } from '../helpers/db-response.model';
-import { UserRegistrationBodyDto } from './models/user-registration-body.model';
 
 describe('UserController', () => {
     let userController: UserController;
@@ -105,8 +106,9 @@ describe('UserController', () => {
 
     describe('deleteUser', () => {
 
-        const parameters = {
-            id : 'ThisIsAUserID',
+        const parameters: Parameters = {
+            id: 'ThisIsAUserID',
+            mealId: '',
         };
 
         const dbResponse: DbResponse = {
@@ -134,19 +136,20 @@ describe('UserController', () => {
     describe('updateUser', () => {
 
         const userRequest = {
-            user : {
-                authLevel : 'USER',
+            user: {
+                authLevel: 'USER',
             },
         };
 
         const adminRequest = {
-            user : {
-                authLevel : 'ADMIN',
+            user: {
+                authLevel: 'ADMIN',
             },
         };
 
-        const parameters = {
-            id : 'ThisIsAUserID',
+        const parameters: Parameters = {
+            id: 'ThisIsAUserID',
+            mealId: '',
         };
 
         const userBody: User = {
@@ -197,8 +200,9 @@ describe('UserController', () => {
 
     describe('getUser', () => {
 
-        const parameters = {
-            id : 'ThisIsAUserID',
+        const parameters: Parameters = {
+            id: 'ThisIsAUserID',
+            mealId: '',
         };
 
         const user: User = {

@@ -60,5 +60,4 @@ export class MealsService {
         }
         return response;
     }
-
 }

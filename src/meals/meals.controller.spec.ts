@@ -1,7 +1,8 @@
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
-import { DbResponse } from 'src/helpers/db-response.model';
 import dbTestModule from '../db-test/db-test.module';
+import { DbResponse } from '../helpers/db-response.model';
+import { Parameters } from '../helpers/parameters.models';
 import { UserSchema } from '../users/user.schema';
 import { MealsController } from './meals.controller';
 import { MealsSchema } from './meals.schema';
@@ -31,8 +32,9 @@ describe('UserController', () => {
 
     describe('addMeal', () => {
 
-        const parameters = {
+        const parameters: Parameters = {
             id: 'ThisIsAUserID',
+            mealId: '',
         };
 
         const postMealBody: Meal = {
@@ -66,7 +68,7 @@ describe('UserController', () => {
 
     describe('updateMeal', () => {
 
-        const parameters = {
+        const parameters: Parameters = {
             id: 'ThisIsAUserID',
             mealId: 'ThisIsAMealID',
         };
@@ -102,8 +104,9 @@ describe('UserController', () => {
 
     describe('getMeals', () => {
 
-        const parameters = {
+        const parameters: Parameters = {
             id: 'ThisIsAUserID',
+            mealId : '',
         };
 
         const mealBody: Meal = {
@@ -120,7 +123,7 @@ describe('UserController', () => {
             calories: 352,
         };
 
-        const mealArray = [mealBody, mealBodyTwo];
+        const serviceResponse = {_id : parameters.id, meals : [mealBody, mealBodyTwo] };
 
         it('Should call mealService.getMeals with the received userId', async () => {
             const mockedGetMeals = jest.fn();
@@ -132,9 +135,9 @@ describe('UserController', () => {
         });
 
         it('Should return a mealsArray', async () => {
-            jest.spyOn(mealService, 'getMeals').mockImplementation(() => new Promise((resolve, reject) => resolve(mealArray)));
+            jest.spyOn(mealService, 'getMeals').mockImplementation(() => new Promise((resolve, reject) => resolve(serviceResponse)));
 
-            expect(await mealController.getMeals(parameters)).toBe(mealArray);
+            expect(await mealController.getMeals(parameters)).toBe(serviceResponse);
         });
     });
 

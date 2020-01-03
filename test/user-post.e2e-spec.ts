@@ -1,6 +1,7 @@
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoginJwt } from 'src/auth/models/login-jwt.model';
 import * as request from 'supertest';
 import { AuthModule } from '../src/auth/auth.module';
 import dbTestModule from '../src/db-test/db-test.module';
@@ -39,9 +40,9 @@ describe('UserController (e2e) - POST', () => {
 
     describe('/api/users/ (POST)', () => {
 
-        let adminLogin;
-        let userLogin;
-        let userManagerLogin;
+        let adminLogin: LoginJwt;
+        let userLogin: LoginJwt;
+        let userManagerLogin: LoginJwt;
 
         const testUser: UserRegistrationBodyDto = {
             firstName: 'TestFirstName',

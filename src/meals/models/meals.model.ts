@@ -1,9 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsMongoId, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsNumber, ValidateIf, IsString } from 'class-validator';
 
-// TODO : Add pipe validation;
 export class Meal {
     @ApiPropertyOptional()
+    @ValidateIf(mealBody => !!mealBody._id)
     @IsMongoId()
     _id?: string;
 
@@ -12,6 +12,8 @@ export class Meal {
     title: string;
 
     @ApiPropertyOptional()
+    @ValidateIf(mealBody => !!mealBody.description)
+    @IsString()
     description?: string;
 
     @ApiProperty()

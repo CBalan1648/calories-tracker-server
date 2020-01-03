@@ -2,19 +2,13 @@ import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nes
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DbResponse } from '../helpers/db-response.model';
-import {
-    BAD_REQUEST, DELETE_MEAL, GET_MEALS,
-    ID_USER_NOT_FOUND, INSUFFICIENT_PRIVILEGES,
-    JWT_NOT_VALID, MEAL_ID_DESCRIPTION, POST_MEAL,
-    PUT_MEAL, USER_ID_DESCRIPTION,
-} from '../helpers/strings';
+import { BAD_REQUEST, DELETE_MEAL, GET_MEALS, ID_USER_NOT_FOUND, INSUFFICIENT_PRIVILEGES, JWT_NOT_VALID, MEAL_ID_DESCRIPTION, POST_MEAL, PUT_MEAL, USER_ID_DESCRIPTION } from '../helpers/strings';
 import { ADMIN, SELF, USER_MANAGER } from '../helpers/userLevel.constants';
 import { Roles } from '../helpers/userLevel.decorator';
 import { UserLevelGuard } from '../helpers/userLevel.guard';
 import { MealsService } from './meals.service';
-import { MealIdParameter } from './models/meal-id.parameter';
 import { Meal } from './models/meals.model';
-import { UserIdParameter } from './models/user-id.parameter';
+import { Parameters } from './models/parameters.models';
 
 @UseGuards(AuthGuard('jwt'), UserLevelGuard)
 @ApiTags('Meals')
@@ -32,7 +26,7 @@ export class MealsController {
     @Roles(SELF, USER_MANAGER, ADMIN)
     @Post(':id/meals')
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
-    async addMeal(@Param() parameters: UserIdParameter, @Body() meal: Meal): Promise<Meal> {
+    async addMeal(@Param() parameters: Parameters, @Body() meal: Meal): Promise<Meal> {
         return this.mealsService.addMeal(parameters.id, meal);
     }
 
@@ -45,7 +39,7 @@ export class MealsController {
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
     @ApiParam({ name: 'mealId', description: MEAL_ID_DESCRIPTION, required: true })
     @Roles(SELF, USER_MANAGER, ADMIN)
-    async updateMeal(@Param() parameters: UserIdParameter & MealIdParameter, @Body() meal: Meal): Promise<DbResponse> {
+    async updateMeal(@Param() parameters: Parameters, @Body() meal: Meal): Promise<DbResponse> {
         return this.mealsService.updateMeal(parameters.id, parameters.mealId, meal);
     }
 
@@ -57,7 +51,7 @@ export class MealsController {
     @ApiOperation({ summary: GET_MEALS })
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
     @Roles(SELF, USER_MANAGER, ADMIN)
-    async getMeals(@Param() parameters: UserIdParameter): Promise<Meal[]> {
+    async getMeals(@Param() parameters: Parameters): Promise<{ _id: string, meals: Meal[] }> {
         return this.mealsService.getMeals(parameters.id);
     }
 
@@ -70,7 +64,7 @@ export class MealsController {
     @ApiParam({ name: 'id', description: USER_ID_DESCRIPTION, required: true })
     @ApiParam({ name: 'mealId', description: MEAL_ID_DESCRIPTION, required: true })
     @Roles(SELF, USER_MANAGER, ADMIN)
-    async deleteMeal(@Param() parameters: UserIdParameter & MealIdParameter): Promise<DbResponse> {
+    async deleteMeal(@Param() parameters: Parameters): Promise<DbResponse> {
         return this.mealsService.deleteMeal(parameters.id, parameters.mealId);
     }
 }

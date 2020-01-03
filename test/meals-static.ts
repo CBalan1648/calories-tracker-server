@@ -2,9 +2,11 @@ import { Meal } from '../src/meals/models/meals.model';
 
 export const fakeUserId = '507f1f77bcf86cd799439011';
 
-export const notValidUserId = "123"
+export const fakeMealId = '507f1f77bcf86cd799439012';
 
-export const fakeJWT = "AAAABBBBCCCC"
+export const notValidMongoId = '123';
+
+export const fakeJWT = 'AAAABBBBCCCC';
 
 export const mealBodyOne: Meal = {
     title: 'mealTitle',
@@ -19,4 +21,3 @@ export const mealBodyTwo: Meal = {
     time: 1577712225238,
     calories: 150,
 };
-

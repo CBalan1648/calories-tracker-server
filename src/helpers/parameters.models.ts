@@ -1,11 +1,12 @@
 import { IsMongoId, ValidateIf } from 'class-validator';
+import { keyExists } from './helper.functions';
 
 export class Parameters {
     @IsMongoId()
-    @ValidateIf(pararameters => !!pararameters.id)
+    @ValidateIf(keyExists.bind(null, 'id'))
     id: string;
 
     @IsMongoId()
-    @ValidateIf(pararameters => !!pararameters.mealId)
+    @ValidateIf(keyExists.bind(null, 'mealId'))
     mealId: string;
 }

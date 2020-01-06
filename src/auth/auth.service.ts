@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../users/models/user.model';
 import { UserCredentialsDto } from '../users/models/user-credentials.model';
+import { USER_NOT_FOUND } from '../helpers/strings';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,6 @@ export class AuthService {
         if (user) {
             return user;
         }
-        throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
+        throw new HttpException(USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 }

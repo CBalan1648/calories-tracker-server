@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, Length } from 'class-validator';
-import { MINIMUM_PASS_LENGHT } from 'src/config';
+import { MINIMUM_PASS_LENGHT } from '../../config';
 
 export class UserCredentialsDto {
 

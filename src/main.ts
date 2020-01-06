@@ -1,10 +1,10 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { SERVER_PORT, ROOT_ADDRESS } from './config';
+import { ROOT_ADDRESS, SERVER_PORT, CORS_ORIGIN } from './config';
 
-// TODO remove x-powered-by header
 const options = new DocumentBuilder()
 .setTitle('Calories Tracker - API Documentation')
 .setDescription('This document describes endpoints for users and meals CRUD operations')
@@ -13,13 +13,16 @@ const options = new DocumentBuilder()
 .build();
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useGlobalPipes(new ValidationPipe());
 
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup(ROOT_ADDRESS, app, document);
 
-  app.enableCors();
+  const httpAdapter = app.getHttpAdapter();
+
+  app.enableCors({origin:CORS_ORIGIN});
+  app.disable('x-powered-by');
   await app.listen(SERVER_PORT);
 }
 bootstrap();

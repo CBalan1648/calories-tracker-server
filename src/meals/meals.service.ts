@@ -40,7 +40,7 @@ export class MealsService {
         });
 
         if (response.n === 0) {
-            throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
+            throw new HttpException(USER_NOT_FOUND, HttpStatus.NOT_FOUND);
         }
 
         return response;
@@ -49,7 +49,7 @@ export class MealsService {
     async getMeals(userId: string): Promise<{ _id: string, meals: Meal[] }> {
         const userMeals = await this.userModel.findOne({ _id: userId }, { meals: 1 }, { omitUndefined: true });
         if (userMeals === null) {
-            throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
+            throw new HttpException(USER_NOT_FOUND, HttpStatus.NOT_FOUND);
         }
         return userMeals;
     }
@@ -57,7 +57,7 @@ export class MealsService {
     async deleteMeal(userId: string, mealId: string): Promise<DbResponse> {
         const response = await this.userModel.update({ _id: userId }, { $pull: { meals: { _id: mealId } } });
         if (response.n === 0) {
-            throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
+            throw new HttpException(USER_NOT_FOUND, HttpStatus.NOT_FOUND);
         }
         return response;
     }

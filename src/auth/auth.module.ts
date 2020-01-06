@@ -5,13 +5,14 @@ import { PassportModule } from '@nestjs/passport';
 import { UserSchema } from '../users/user.schema';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jtw.strategy';
+import { JWT_SECRET, JWT_EXPIRATION_TIME } from 'src/config';
 
 @Module({
     imports: [
         PassportModule,
         JwtModule.register({
-            secret: 'HELLO_HELLO_DO_NOT_USE_THIS',
-            signOptions: { expiresIn: '24h' },
+            secret: JWT_SECRET,
+            signOptions: { expiresIn: JWT_EXPIRATION_TIME },
         }),
         MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     ],

@@ -1,6 +1,6 @@
 import { MongooseModule } from '@nestjs/mongoose';
-import { mongoose } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MONGO_DB_IN_MEMORY_ADDRESS } from '../config';
 
 export default () => MongooseModule.forRootAsync({
   useFactory: async () => {
@@ -9,7 +9,7 @@ export default () => MongooseModule.forRootAsync({
     const database = await mongod.getDbName();
 
     return {
-      uri: `mongodb://localhost:${port}/${database}`,
+      uri: `${MONGO_DB_IN_MEMORY_ADDRESS}:${port}/${database}`,
     };
   },
 });

@@ -9,7 +9,11 @@ import { GuestController } from '../src/users/guest.controller';
 import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { adminUser, adminUserLoginCredentials, fakeJWT, fakeUserId, normalUser, normalUserLoginCredentials, notValidMongoId, userManager, userManagerLoginCredentials } from './static';
+import {
+    adminUser, adminUserLoginCredentials, fakeJWT,
+    fakeUserId, normalUser, normalUserLoginCredentials,
+    notValidMongoId, userManager, userManagerLoginCredentials,
+} from './static';
 
 describe('UserController (e2e) - GET', () => {
     let app;

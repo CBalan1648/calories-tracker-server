@@ -12,7 +12,12 @@ import { Meal } from '../src/meals/models/meals.model';
 import { GuestController } from '../src/users/guest.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { adminUser, fakeJWT, fakeMealId, fakeUserId, mealBodyOne, mealBodyTwo, normalUser, notValidMongoId, userManager, adminUserLoginCredentials, normalUserLoginCredentials, userManagerLoginCredentials } from './static';
+import {
+    adminUser, fakeJWT, fakeMealId, fakeUserId,
+    mealBodyOne, mealBodyTwo, normalUser, notValidMongoId,
+    userManager, adminUserLoginCredentials, normalUserLoginCredentials,
+    userManagerLoginCredentials,
+} from './static';
 
 describe('MealsController (e2e) - PUT', () => {
     let app;

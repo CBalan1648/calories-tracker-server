@@ -1,9 +1,9 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as helmet from 'helmet';
 import { AppModule } from './app.module';
-import { ROOT_ADDRESS, SERVER_PORT, CORS_ORIGIN } from './config';
+import { CORS_ORIGIN, ROOT_ADDRESS, SERVER_PORT } from './config';
 
 const options = new DocumentBuilder()
 .setTitle('Calories Tracker - API Documentation')
@@ -13,16 +13,15 @@ const options = new DocumentBuilder()
 .build();
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
+
+  app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());
 
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup(ROOT_ADDRESS, app, document);
 
-  const httpAdapter = app.getHttpAdapter();
-
-  app.enableCors({origin:CORS_ORIGIN});
-  app.disable('x-powered-by');
+  app.enableCors({origin: CORS_ORIGIN});
   await app.listen(SERVER_PORT);
 }
 bootstrap();

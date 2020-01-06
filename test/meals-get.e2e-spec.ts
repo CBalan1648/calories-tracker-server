@@ -11,7 +11,12 @@ import { MealsService } from '../src/meals/meals.service';
 import { GuestController } from '../src/users/guest.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { adminUser, adminUserLoginCredentials, fakeJWT, fakeUserId, mealBodyOne, mealBodyTwo, normalUser, normalUserLoginCredentials, notValidMongoId, userManager, userManagerLoginCredentials } from './static';
+import {
+    adminUser, adminUserLoginCredentials, fakeJWT,
+    fakeUserId, mealBodyOne, mealBodyTwo, normalUser,
+    normalUserLoginCredentials, notValidMongoId,
+    userManager, userManagerLoginCredentials,
+} from './static';
 
 describe('MealsController (e2e) - GET', () => {
     let app;

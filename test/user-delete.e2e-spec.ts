@@ -10,7 +10,11 @@ import { UserRegistrationBodyDto } from '../src/users/models/user-registration-b
 import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { adminUser, adminUserLoginCredentials, fakeJWT, fakeUserId, normalUser, normalUserLoginCredentials, notValidMongoId, userManager, userManagerLoginCredentials } from './static';
+import {
+    adminUser, adminUserLoginCredentials, fakeJWT,
+    fakeUserId, normalUser, normalUserLoginCredentials,
+    notValidMongoId, userManager, userManagerLoginCredentials,
+} from './static';
 
 describe('UserController (e2e) - DELETE', () => {
     let app;

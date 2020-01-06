@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, Length } from 'class-validator';
-import { minimumPasswordLength } from './user-add-body.model';
+import { IsEmail, Length } from 'class-validator';
+import { MINIMUM_PASS_LENGHT } from 'src/config';
 
 export class UserCredentialsDto {
 
@@ -8,7 +8,7 @@ export class UserCredentialsDto {
     @IsEmail()
     email: string;
 
-    @ApiProperty({ minLength: minimumPasswordLength })
-    @Length(minimumPasswordLength)
+    @ApiProperty({ minLength: MINIMUM_PASS_LENGHT })
+    @Length(MINIMUM_PASS_LENGHT)
     password: string;
 }

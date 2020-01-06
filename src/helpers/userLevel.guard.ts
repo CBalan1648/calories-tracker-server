@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { SELF } from './userLevel.constants';
 
 @Injectable()
 export class UserLevelGuard implements CanActivate {
@@ -13,7 +14,7 @@ export class UserLevelGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const user = request.user;
 
-        const isSelf = roles.includes('SELF') && request.params.id === user._id;
+        const isSelf = roles.includes(SELF) && request.params.id === user._id;
 
         const isAuthorized = roles.includes(user.authLevel);
 

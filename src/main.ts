@@ -2,12 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-
-// TODO extract to a config file
+import { SERVER_PORT, ROOT_ADDRESS } from './config';
 
 // TODO remove x-powered-by header
-const serverPort = 3000;
-
 const options = new DocumentBuilder()
 .setTitle('Calories Tracker - API Documentation')
 .setDescription('This document describes endpoints for users and meals CRUD operations')
@@ -20,9 +17,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup(ROOT_ADDRESS, app, document);
 
   app.enableCors();
-  await app.listen(serverPort);
+  await app.listen(SERVER_PORT);
 }
 bootstrap();

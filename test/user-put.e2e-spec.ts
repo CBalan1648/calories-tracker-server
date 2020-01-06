@@ -10,7 +10,11 @@ import { User } from '../src/users/models/user.model';
 import { UserController } from '../src/users/user.controller';
 import { UserSchema } from '../src/users/user.schema';
 import { UserService } from '../src/users/user.service';
-import { adminUser, fakeJWT, fakeUserId, normalUser, notValidMongoId, userManager, adminUserLoginCredentials, normalUserLoginCredentials, userManagerLoginCredentials } from './static';
+import {
+    adminUser, fakeJWT, fakeUserId, normalUser,
+    notValidMongoId, userManager, adminUserLoginCredentials,
+    normalUserLoginCredentials, userManagerLoginCredentials,
+} from './static';
 
 describe('UserController (e2e) - PUT', () => {
     let app;

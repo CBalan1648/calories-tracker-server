@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { DbResponse } from '../helpers/db-response.model';
 import { User } from '../users/models/user.model';
 import { Meal } from './models/meals.model';
+import { USER_NOT_FOUND } from '../helpers/strings';
 
 @Injectable()
 export class MealsService {
@@ -19,7 +20,7 @@ export class MealsService {
         }, { new: true, fields: { meals: { $slice: -1 } } });
 
         if (updatedUserCursor === null) {
-            throw new HttpException('User not Found', HttpStatus.NOT_FOUND);
+            throw new HttpException(USER_NOT_FOUND, HttpStatus.NOT_FOUND);
         }
 
         return updatedUserCursor.meals[0];

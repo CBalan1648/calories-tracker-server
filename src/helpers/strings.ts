@@ -20,3 +20,4 @@ export const CREATE_USER_ADMIN = 'Create a new User with a selected authLevel - 
 
 export const USER_ID_DESCRIPTION = 'Target user id';
 export const MEAL_ID_DESCRIPTION = 'Target meal id';
+

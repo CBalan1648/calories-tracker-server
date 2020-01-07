@@ -1,8 +1,8 @@
 {
   "name": "calories-tracker-be",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "1.0.0",
+  "description": "Backend for the calories-tracker learning project",
+  "author": "Catalin Balan",
   "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",

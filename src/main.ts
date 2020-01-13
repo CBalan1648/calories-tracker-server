@@ -5,6 +5,8 @@ import * as helmet from 'helmet';
 import { AppModule } from './app.module';
 import { CORS_ORIGIN, ROOT_ADDRESS, SERVER_PORT } from './config';
 
+// !IMPORTANT : Write unit and e2e tests for verifyToken @ GuestController
+
 const options = new DocumentBuilder()
 .setTitle('Calories Tracker - API Documentation')
 .setDescription('This document describes endpoints for users and meals CRUD operations')

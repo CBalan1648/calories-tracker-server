@@ -16,6 +16,15 @@ export class AuthService {
         return { access_token: this.jwtService.sign({ user }) };
     }
 
+    async verifyToken(token: string) {
+
+        this.jwtService.verify(token);
+        if (this.jwtService.verify(token)) {
+            return { access_token: token };
+        }
+        throw new HttpException(USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
     async findUser(credentials: UserCredentialsDto) {
         const user = await this.userModel.findOne(credentials, { password: 0, meals: 0 });
         if (user) {

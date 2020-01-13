@@ -6,6 +6,7 @@ export const USER_NOT_FOUND = 'User could not be found';
 
 export const CREATE_USER = 'Create a new User - Returns created record';
 export const LOGIN = 'Login against the DB - Returns JWT';
+export const LOGIN_JWT = 'Verify if the JWT is valid - Returns JWT';
 
 export const POST_MEAL = 'Create a new Meal - Returns created record';
 export const PUT_MEAL = 'Update meal - Returns number of modified items';

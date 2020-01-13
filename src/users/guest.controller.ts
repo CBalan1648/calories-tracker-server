@@ -2,7 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth/auth.service';
 import { LoginJwt } from '../auth/models/login-jwt.model';
-import { BAD_REQUEST, CREATE_USER, LOGIN, USER_NOT_FOUND } from '../helpers/strings';
+import { BAD_REQUEST, CREATE_USER, LOGIN, USER_NOT_FOUND, LOGIN_JWT } from '../helpers/strings';
 import { UserAddNewBodyDto } from './models/user-add-body.model';
 import { UserCredentialsDto } from './models/user-credentials.model';
 import { User } from './models/user.model';
@@ -28,4 +28,13 @@ export class GuestController {
     async login(@Body() credentials: UserCredentialsDto): Promise<LoginJwt> {
         return this.authService.login(credentials);
     }
+
+    @Post('token')
+    @ApiOperation({ summary: LOGIN_JWT })
+    @ApiResponse({ status: 404, description: USER_NOT_FOUND })
+    @ApiResponse({ status: 400, description: BAD_REQUEST })
+    async verifyToken(@Body() body: LoginJwt): Promise<LoginJwt> {
+        return this.authService.verifyToken(body.access_token);
+    }
+
 }

@@ -16,5 +16,5 @@ steps:
   - name: docker  
     image: plugins/docker
     settings:
-      repo:  azurelynx.com:5000/test
+      repo:  azurelynx.com:5000/v2/test
       registry: azurelynx.com:5000

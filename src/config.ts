@@ -10,4 +10,4 @@ export const ROOT_ADDRESS = 'api';
 export const JWT_SECRET = 'HELLO_HELLO_DO_NOT_USE_THIS';
 export const JWT_EXPIRATION_TIME = '24h';
 
-export const CORS_ORIGIN = 'http://ctf.azurelynx.com';
+export const CORS_ORIGIN = 'https://ctf.azurelynx.com';

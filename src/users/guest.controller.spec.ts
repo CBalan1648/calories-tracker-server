@@ -89,5 +89,23 @@ describe('GuestController', () => {
             expect(await guestController.login(loginBody)).toBe(token);
         });
     });
-
+    describe('verifyToken', () => {
+            
+            const token = { access_token: 'ThisIsARealToken' };
+    
+            it('Should call authService.verifyToken with the received body', async () => {
+                const mockedVerifyToken = jest.fn();
+    
+                jest.spyOn(authService, 'verifyToken').mockImplementation(mockedVerifyToken);
+    
+                guestController.verifyToken(token);
+                expect(mockedVerifyToken).toBeCalledWith(token.access_token);
+            });
+    
+            it('Should return the userToken', async () => {
+                jest.spyOn(authService, 'verifyToken').mockImplementation(() => new Promise((resolve, reject) => resolve(token)));
+    
+                expect(await guestController.verifyToken(token)).toBe(token);
+            });
+        });
 });

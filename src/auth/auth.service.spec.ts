@@ -131,4 +131,48 @@ describe('MealService', () => {
 
         });
     });
+
+    describe('verifyToken', () => {
+        it('should call jwtService.verify', async () => {
+            const mockedFunction = jest.fn();
+            const mockEnvironment = {
+                jwtService: {
+                    verify(argumentOne) {
+                        mockedFunction();
+                        return argumentOne;
+                    },
+                },
+            };
+            const response = await authService.verifyToken.call(mockEnvironment, 'token');
+            expect(response.access_token).toBe("token");
+            expect(mockedFunction).toBeCalled();
+        });
+
+        it('should throw an error', async () => {
+            const mockedFunction = jest.fn();
+            const mockEnvironment = {
+                jwtService: {
+                    verify(argumentOne) {
+                        mockedFunction();
+                        throw new Error('error');
+                    },
+                },
+            };
+            expect(authService.verifyToken.call(mockEnvironment, 'token')).rejects.toThrow('error');
+            expect(mockedFunction).toBeCalled();
+        });
+        it('should throw USER_NOT_FOUND error', async () => {
+            const mockedFunction = jest.fn();
+            const mockEnvironment = {
+                jwtService: {
+                    verify(argumentOne) {
+                        mockedFunction();
+                        return null;
+                    },
+                },
+            };
+            expect(authService.verifyToken.call(mockEnvironment, 'token')).rejects.toThrow(USER_NOT_FOUND);
+            expect(mockedFunction).toBeCalled();
+        });
+    });
 });
